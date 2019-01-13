@@ -1,5 +1,5 @@
-defmodule BlockKeys::Bip32Mnemonic do
-  def work() do
+defmodule BlockKeys.Bip32Mnemonic do
+  def generate do
     entropy = SecureRandom.random_bytes(32)
 
     checksum = 
