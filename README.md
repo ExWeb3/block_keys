@@ -1,8 +1,9 @@
 # BlockKeys
 
-**WIP Elixir implementation of BIP44 Blockchain Wallet**
+**WIP Elixir implementation of BIP44 Blockchain Wallet. Do not use this, it's just a learning implementation.**
 
-Do not use this, it's just a learning implementation.
+BIP44 supports a [large number of coin types](https://github.com/satoshilabs/slips/blob/master/slip-0044.md).
+
 
 ## Installation
 
