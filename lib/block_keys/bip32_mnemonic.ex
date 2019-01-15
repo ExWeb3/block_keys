@@ -1,6 +1,8 @@
 defmodule BlockKeys.Bip32Mnemonic do
   @pad_length_mnemonic 8
   @pad_length_phrase 11
+  @pbkdf2_rounds 2048
+  @pbkdf2_initial_round 1
 
   def generate_phrase do
     entropy = SecureRandom.random_bytes(32)
@@ -90,5 +92,20 @@ defmodule BlockKeys.Bip32Mnemonic do
       |> Tuple.to_list
       |> Enum.find_index(fn el -> el === phrase_word end)
     end)
+  end
+
+  def salt(password), do: "mnemonic" <> password
+
+  def generate_seed(entropy, password \\ "") do
+    salt = <<salt(password)::binary, 1::integer-32>>
+    initial_round = :crypto.hmac(:sha512, entropy, salt)
+    iterate(entropy, @pbkdf2_initial_round + 1, initial_round, initial_round)
+    |> Base.encode16(case: :lower)
+  end
+
+  def iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
+  def iterate(entropy, round, previous, result) do
+    next = :crypto.hmac(:sha512, entropy, previous)
+    iterate(entropy, round + 1, next, :crypto.exor(next, result))
   end
 end

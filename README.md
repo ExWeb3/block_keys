@@ -58,3 +58,28 @@ The steps to restore the entropy given the phrase are:
 - Split the bitstring into groups of 8 bits
 - Convert each chunk into a byte (8 bits)
 - Convert the byte list into a binary
+
+### Generate seed given entropy and optional password
+
+To generate the final seed that will in turn derive our tree of private in public addresses we will use a key stretching function called PBKDF2.
+The hashing function we will use is HMAC-SHA512 with 2048 iterations. 
+
+```
+iex(1)> ent = BlockKeys.Bip32Mnemonic.entropy_from_phrase("future skate cash mountain senior maze spoil supply flee front ocean organ pause patrol define box save exhibit bike blush length globe jungle bacon ")
+<<94, 153, 64, 141, 72, 76, 59, 19, 52, 150, 206, 88, 203, 170, 99, 206, 58, 23,
+  66, 78, 96, 212, 191, 201, 240, 88, 140, 72, 0, 198, 158, 64>>
+iex(2)> BlockKeys.Bip32Mnemonic.generate_seed(ent)
+"3b8831d9372b6bccbdb18b013c1ad88d6d33650d82865bbd84dfaa9080a9f67f7bad64251a304960488fcdea85fd015c2899ed15cb221ebb3f373340e37409f1"
+iex(3)> BlockKeys.Bip32Mnemonic.generate_seed(ent, "supersecurepassword")
+"b156a85e86341a28503951bc4fa543b73ed203ef241ceee06386a1f9d15229a8e7c4a1709eca5306266f9a7195101219cfa5f145f574fe53a3dab481a2ea848b"
+```
+
+Note that there is no such thing as a right or wrong password. If you use the wrong password you will generate a completely different seed that will in turn
+create a completely different tree of wallet addresses.
+
+Here are the steps:
+
+- Create a salt. If no password is chosen, the salt will be comprised of the string "mnemonic"
+- Create initial PBKDF2 round by passing the entropy as the key and the salt as the data.
+- Repeat this 2048 times. The entropy parameter stays the same, while the data is the xor of the current and previous result
+- The final binary is encoded in hex
