@@ -1,4 +1,6 @@
 defmodule BlockKeys.Bip32Mnemonic do
+  alias BlockKeys.Base58Check
+
   @pad_length_mnemonic 8
   @pad_length_phrase 11
   @pbkdf2_rounds 2048
@@ -101,6 +103,29 @@ defmodule BlockKeys.Bip32Mnemonic do
     initial_round = :crypto.hmac(:sha512, entropy, salt)
     iterate(entropy, @pbkdf2_initial_round + 1, initial_round, initial_round)
     |> Base.encode16(case: :lower)
+  end
+
+  def master_keys(encoded_seed) do
+    decoded_seed = encoded_seed
+                   |> Base.decode16!(case: :lower)
+
+    << private_key::binary-32, chain_code::binary-32 >> = :crypto.hmac(:sha512, "Bitcoin seed", decoded_seed)
+    
+    %{
+      private_key: private_key,
+      chain_code: chain_code
+    }
+  end
+
+  def master_private_key(private_key, chain_code) do
+    version_number = <<4, 136, 173, 228>>
+    depth = <<0>>
+    fingerprint = <<0::32>>
+    index = <<0::32>>
+
+    key_bytes = version_number <> depth <> fingerprint <> index <> chain_code <> <<0>> <> private_key
+
+    Base58Check.encode(<<0>>, key_bytes)
   end
 
   def iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
