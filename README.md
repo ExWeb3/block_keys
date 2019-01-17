@@ -84,3 +84,25 @@ Here are the steps:
 - Create initial PBKDF2 round by passing the entropy as the key and the salt as the data.
 - Repeat this 2048 times. The entropy parameter stays the same, while the data is the xor of the current and previous result
 - The final binary is encoded in hex
+
+### Calculate master private key hash from private key and chain code
+
+```
+iex(1)> %{ private_key: private_key, chain_code: chain_code } = BlockKeys.Bip32Mnemonic.master_keys(seed)
+%{
+  chain_code: <<113, 145, 195, 94, 170, 105, 18, 17, 17, 182, 22, 144, 118, 37,
+    125, 140, 53, 20, 236, 95, 178, 2, 123, 70, 132, 73, 116, 63, 48, 205, 237,
+    240>>,
+  private_key: <<171, 225, 133, 190, 77, 45, 123, 69, 76, 189, 218, 198, 15,
+    195, 157, 184, 133, 130, 105, 77, 106, 57, 206, 251, 102, 183, 90, 236, 206,
+    162, 34, 118>>
+}
+iex(2)> BlockKeys.Bip32Mnemonic.master_private_key(private_key, chain_code)
+"xprv9s21ZrQH143K3BwM39ubv3fkaHxCN6M4roETEg68Jviq9AnbRjmqVAF4qJHkoLqgSv2bNqYTnRNY9yBQhjNYceZ1NxiDe8WcNJAeWetCvfR"
+```
+
+Here are the steps:
+
+- Derive the private key and chain code by HMAC-SHA512 hash of the seed and using 'Bitcoin Seed' as the seed
+- Put together the master private key binary by combining: version_number, depth, fingerprint, index
+- Take the Base58Check of this
