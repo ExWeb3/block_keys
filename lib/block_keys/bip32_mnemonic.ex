@@ -224,14 +224,18 @@ defmodule BlockKeys.Bip32Mnemonic do
             |> :binary.decode_unsigned 
             |> Kernel.+(1)
             |> :binary.encode_unsigned
-    
-    hash_value = :crypto.hmac(:sha512, decoded_key.chain_code, parent_pub_key <> index)
-    << derived_key::binary-32, child_chain::binary-32 >> = hash_value
 
-    {:ok, public_child_key } = :libsecp256k1.ec_pubkey_tweak_add(parent_pub_key, derived_key)
+    if index |> :binary.decode_unsigned > @mersenne_prime do
+      {:error, "Cannot do hardened derivation from public key"}
+    else
+      hash_value = :crypto.hmac(:sha512, decoded_key.chain_code, parent_pub_key <> index)
+      << derived_key::binary-32, child_chain::binary-32 >> = hash_value
 
-    @public_version_number <>  depth <> fingerprint <> index <> child_chain <> public_child_key
-    |> base58_encode
+      {:ok, public_child_key } = :libsecp256k1.ec_pubkey_tweak_add(parent_pub_key, derived_key)
+
+      @public_version_number <>  depth <> fingerprint <> index <> child_chain <> public_child_key
+      |> base58_encode
+    end
   end
 
   def child_key_private(decoded_key, child_index) do
@@ -254,7 +258,13 @@ defmodule BlockKeys.Bip32Mnemonic do
             |> Kernel.+(1)
             |> :binary.encode_unsigned
 
-    hash_value = :crypto.hmac(:sha512, decoded_key.chain_code, parent_pub_key <> index)
+    parent_key = if index |> :binary.decode_unsigned > @mersenne_prime do
+      <<0>> <> parent_priv_key
+    else
+      parent_pub_key
+    end
+
+    hash_value = :crypto.hmac(:sha512, decoded_key.chain_code, parent_key <> index)
 
     << derived_key::256, child_chain::binary >> = hash_value
 
