@@ -22,7 +22,8 @@ defmodule BlockKeys.MixProject do
   defp deps do
     [
       {:secure_random, "~> 0.5"},
-      {:libsecp256k1, "~> 0.1.9"}
+      {:libsecp256k1, "~> 0.1.9"},
+      {:base58check, github: "tzumby/base58check"}
     ]
   end
 end
