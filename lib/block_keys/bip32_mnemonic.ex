@@ -131,16 +131,11 @@ defmodule BlockKeys.Bip32Mnemonic do
     |> base58_encode
   end
 
-  def base58_encode(bytes) do
-    Base58Check.encode58check("", bytes)
+  def base58_encode(bytes, version_prefix \\ "") do
+    Base58Check.encode58check(version_prefix, bytes)
   end
 
   def master_public_key(extended_key) do
-    version_number = @public_version_number
-    depth = <<0>>
-    fingerprint = <<0::32>>
-    index = <<0::32>>
-
     decoded_key = parse_extended_key(extended_key)
     <<_prefix::binary-1, parent_priv_key::binary >> = decoded_key.key
 
@@ -155,7 +150,7 @@ defmodule BlockKeys.Bip32Mnemonic do
       << 0x03::8, x_coordinate::256 >>
     end
 
-    version_number <> depth <> fingerprint <> index <> decoded_key.chain_code <> pub_key
+    @public_version_number <> decoded_key.depth <> decoded_key.fingerprint <> decoded_key.index <> decoded_key.chain_code <> pub_key
     |> base58_encode
   end
 
@@ -204,6 +199,7 @@ defmodule BlockKeys.Bip32Mnemonic do
     :crypto.hash(:ripemd160, data)
   end
 
+  def child_key({:error, _ } = error, _), do: error
   def child_key(extended_key, child_index) do
     decoded_key = parse_extended_key(extended_key)
     case decoded_key.version_number do
@@ -215,7 +211,7 @@ defmodule BlockKeys.Bip32Mnemonic do
   end
   
   def child_key_public(decoded_key, child_index) do
-    parent_pub_key = decoded_key.key
+    parent_pub_key  = decoded_key.key
 
     <<fingerprint::binary-4, _rest::binary>> = hash160(parent_pub_key)
 
@@ -225,9 +221,10 @@ defmodule BlockKeys.Bip32Mnemonic do
             |> Kernel.+(1)
             |> :binary.encode_unsigned
 
-    if index |> :binary.decode_unsigned > @mersenne_prime do
+    if (index |> :binary.decode_unsigned > @mersenne_prime) && (decoded_key.version_number !== @private_version_number) do
       {:error, "Cannot do hardened derivation from public key"}
     else
+
       hash_value = :crypto.hmac(:sha512, decoded_key.chain_code, parent_pub_key <> index)
       << derived_key::binary-32, child_chain::binary-32 >> = hash_value
 
