@@ -106,3 +106,23 @@ Here are the steps:
 - Derive the private key and chain code by HMAC-SHA512 hash of the seed and using 'Bitcoin Seed' as the seed
 - Put together the master private key binary by combining: version_number, depth, fingerprint, index
 - Take the Base58Check of this
+
+### Derive a BIP44 path from an extended private key
+
+```
+iex(1)> xprv = "xprv9s21ZrQH143K3BwM39ubv3fkaHxCN6M4roETEg68Jviq9AnbRjmqVAF4qJHkoLqgSv2bNqYTnRNY9yBQhjNYceZ1NxiDe8WcNJAeWetCvfR"
+"xprv9s21ZrQH143K3BwM39ubv3fkaHxCN6M4roETEg68Jviq9AnbRjmqVAF4qJHkoLqgSv2bNqYTnRNY9yBQhjNYceZ1NxiDe8WcNJAeWetCvfR"
+iex(2)> child_xprv = BlockKeys.derive(xprv, "m/44'/0'/0'")
+"xprv9yAYtNSBnu2ojv5BR1b8T39t8oPnbzG8H8CbEHnhBhoXWf441nRA3zDW7PFBL4wkz7CNqtbhr4YVnLuSquiR1QPJgk72jVN8uZ4S2UkuLVk"
+iex(3)> child_xpub = BlockKeys.Bip32Mnemonic.master_public_key(child_xprv) 
+"xpub6C9uHsy5dGb6xQ9eX388pB6cgqEH1SyyeM8C2gCJk3LWPTPCZKjQbnXyxfCy6uTSoEqL26V73ofvyJFbPdPmwza5EuNTyA5EQFDTA3bgH9w"
+iex(4)> BlockKeys.derive(child_xpub, "M/0/0")
+"xpub6FhGWXgKmE4HPRkoc4sxvkQY5NJfR9pa6C22SRcy4PsMpvekgpGjHsNGr6SnHV4K3134nd9bEZX8PTX3HEyeQTZT9UPM5TfcfpdReEafTXN"
+iex(5)> BlockKeys.derive(xprv, "M/44'/0'/0'/0/0")
+"xpub6FhGWXgKmE4HPRkoc4sxvkQY5NJfR9pa6C22SRcy4PsMpvekgpGjHsNGr6SnHV4K3134nd9bEZX8PTX3HEyeQTZT9UPM5TfcfpdReEafTXN"
+```
+
+The example demonstrates how you can generate a hardened path extended private key from a master private key.
+The child extended private key is converted to an extended public key. 
+This key can be deployed and used to generate un-hardened (normal) addresses without exposing any private keys. Using our child private key we 
+can watch for incoming transactions.
