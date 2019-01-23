@@ -126,3 +126,14 @@ The example demonstrates how you can generate a hardened path extended private k
 The child extended private key is converted to an extended public key. 
 This key can be deployed and used to generate un-hardened (normal) addresses without exposing any private keys. Using our child private key we 
 can watch for incoming transactions.
+
+### From public key to Bitcoin Address or Ethereum Address
+
+```
+iex(1)> xpub = "xpub6FhGWXgKmE4HPRkoc4sxvkQY5NJfR9pa6C22SRcy4PsMpvekgpGjHsNGr6SnHV4K3134nd9bEZX8PTX3HEyeQTZT9UPM5TfcfpdReEafTXN"
+"xpub6FhGWXgKmE4HPRkoc4sxvkQY5NJfR9pa6C22SRcy4PsMpvekgpGjHsNGr6SnHV4K3134nd9bEZX8PTX3HEyeQTZT9UPM5TfcfpdReEafTXN"
+iex(2)> BlockKeys.Bitcoin.Address.from_public_key(xpub)
+"1aiuNGfWzvaFattQKrFNqqroT9ERtEqFK"
+iex(3)> BlockKeys.Ethereum.Address.from_public_key(xpub)
+"0xbfb5eb28f7571c6bbf55e94aa75827e7865a0c0e"
+```
