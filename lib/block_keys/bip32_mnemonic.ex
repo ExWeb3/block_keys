@@ -200,15 +200,8 @@ defmodule BlockKeys.Bip32Mnemonic do
   end
 
   def child_key({:error, _ } = error, _), do: error
-  def child_key(extended_key, child_index) do
-    decoded_key = parse_extended_key(extended_key)
-    case decoded_key.version_number do
-      @private_version_number ->
-        child_key_private(decoded_key, child_index)
-      @public_version_number ->
-        child_key_public(decoded_key, child_index)
-    end
-  end
+  def child_key(<< "xpub", _rest::binary >> = extended_key, child_index), do: child_key_public(parse_extended_key(extended_key), child_index)
+  def child_key(<< "xprv", _rest::binary >> = extended_key, child_index), do: child_key_private(parse_extended_key(extended_key), child_index)
   
   def child_key_public(decoded_key, child_index) do
     parent_pub_key  = decoded_key.key

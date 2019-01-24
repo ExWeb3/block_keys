@@ -5,7 +5,7 @@ defmodule BlockKeys.Ethereum.Address do
     public_key
     |> maybe_decode()
     |> keccak256()
-    |> to_address
+    |> to_address()
   end
 
   defp maybe_decode(<< "xpub", _rest::binary >> = encoded_key) do
