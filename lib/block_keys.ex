@@ -1,9 +1,22 @@
 defmodule BlockKeys do
+  @moduledoc """
+  This module derives children keys given an extended public or private key and a path
+  """
+
   alias BlockKeys.Bip32Mnemonic
   @mersenne_prime 2_147_483_647
 
   def derive(<< "xpub", _rest::binary >>, << "m/", _path::binary >>), do: {:error, "Cannot derive private key from public key" }
 
+
+  @doc """
+  Returns a Base58 encode check child extended key given an extended key and a path
+
+  ### Examples
+
+        iex> BlockKeys.derive("xprv9s21ZrQH143K3BwM39ubv3fkaHxCN6M4roETEg68Jviq9AnbRjmqVAF4qJHkoLqgSv2bNqYTnRNY9yBQhjNYceZ1NxiDe8WcNJAeWetCvfR", "m/44'/0'/0'")
+        "xprv9yAYtNSBnu2ojv5BR1b8T39t8oPnbzG8H8CbEHnhBhoXWf441nRA3zDW7PFBL4wkz7CNqtbhr4YVnLuSquiR1QPJgk72jVN8uZ4S2UkuLVk"
+  """
   def derive(<< "xprv", _rest::binary >> = extended_key, << "M/", path::binary >>) do
     child_prv = 
       path
@@ -12,7 +25,6 @@ defmodule BlockKeys do
 
     Bip32Mnemonic.master_public_key(child_prv)
   end
-
   def derive(extended_key, path) do
     path
     |> String.replace(~r/m\/|M\//, "")

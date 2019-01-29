@@ -1,4 +1,8 @@
 defmodule BlockKeys.Bip32Mnemonic do
+  @moduledoc """
+  BIP32 implementation responsible for generating mnemonic phrases, seeds and public / private address trees.
+  """
+
   @pad_length_mnemonic 8
   @pad_length_phrase 11
   @pbkdf2_rounds 2048
@@ -10,27 +14,71 @@ defmodule BlockKeys.Bip32Mnemonic do
   @order 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
   @mersenne_prime 2_147_483_647
 
-  def generate_phrase do
-    entropy = SecureRandom.random_bytes(32)
 
-    entropy
+  @doc """
+  Generates the 24 random manmonic words.
+
+  ## Examples
+
+      iex> BlockKeys.Bip32Mnemonic.generate_phrase()
+      "baby shadow city tower diamond magnet avocado champion crash ..."
+
+  """
+  def generate_phrase do
+    SecureRandom.random_bytes(32)
       |> entropy_hash()
       |> extract_checksum()
-      |> append_checksum(entropy)
+      |> append_checksum()
       |> :binary.bin_to_list()
       |> Enum.map(fn byte -> to_bitstring(byte, @pad_length_mnemonic) end)
       |> Enum.join()
       |> mnemonic()
   end
 
+  @doc """
+  Takes a string of word phrases and converts them back to 256bit entropy
+
+  ## Examples
+
+      iex> BlockKeys.Bip32Mnemonic.entropy_from_phrase("baby shadow city tower diamond magnet avocado champion crash...")
+      <<81, 207, 16, 37, 21, 79, 241, 161, 228, 226, 129, 30, 238, 242, 43, 248, 23,
+      150, 111, 135, 12, 220, 228, 66, 200, 175, 200, 11, 201, 238, 18, 145>>
+
+  """
+  def entropy_from_phrase(phrase) do
+    phrase
+    |> phrase_to_list
+    |> word_indexes(words())
+    |> Enum.map(fn index -> to_bitstring(index, @pad_length_phrase) end)
+    |> Enum.join()
+    |> remove_checksum
+    |> entropy()
+  end
+
+  @doc """
+  Given a binary of entropy it will generate teh hex encoded seed
+
+  ## Examples
+      iex> BlockKeys.Bip32Mnemonic.generate_seed(<<94, 153, 64, 141, 72, 76, 59, 19, 52, 150, 206, 88, 203, 170, 99, 206, 58, 23, 66, 78, 96, 212, 191, 201, 240, 88, 140, 72, 0, 198, 158, 64>>)
+      "b156a85e86341a28503951bc4fa543b73ed203ef241ceee06386a1f9d15229a8e7c4a1709eca5306266f9a7195101219cfa5f145f574fe53a3dab481a2ea848b"
+
+  """
+  def generate_seed(entropy, password \\ "") do
+    salt = <<salt(password)::binary, 1::integer-32>>
+    initial_round = :crypto.hmac(:sha512, entropy, salt)
+    iterate(entropy, @pbkdf2_initial_round + 1, initial_round, initial_round)
+    |> Base.encode16(case: :lower)
+  end
+
+
   # hash the initial entropy
-  defp entropy_hash(sequence), do: :libsecp256k1.sha256(sequence)
+  defp entropy_hash(sequence), do: sha256(sequence)
 
   # extract the first byte (8bits)
-  defp extract_checksum(<< checksum :: size(8), _bits :: bitstring >>), do: checksum
+  defp extract_checksum(<< checksum :: size(8), _bits :: bitstring >> = entropy), do: {checksum,entropy}
 
   # append the checksum to initial entropy
-  defp append_checksum(checksum, entropy), do: entropy <> << checksum >>
+  defp append_checksum({checksum, entropy}), do: entropy <> << checksum >>
 
   # convert a byte to a bitstring (8bits)
   def to_bitstring(byte, pad_length) do
@@ -65,17 +113,6 @@ defmodule BlockKeys.Bip32Mnemonic do
     |> List.to_tuple
   end
 
-  # convert the phrase to entropy
-  def entropy_from_phrase(phrase) do
-    phrase
-    |> phrase_to_list
-    |> word_indexes(words())
-    |> Enum.map(fn index -> to_bitstring(index, @pad_length_phrase) end)
-    |> Enum.join()
-    |> remove_checksum
-    |> entropy()
-  end
-
   def entropy(bitstring) do
     Regex.scan(~r/.{8}/, bitstring)
     |> List.flatten
@@ -101,13 +138,6 @@ defmodule BlockKeys.Bip32Mnemonic do
   end
 
   def salt(password), do: "mnemonic" <> password
-
-  def generate_seed(entropy, password \\ "") do
-    salt = <<salt(password)::binary, 1::integer-32>>
-    initial_round = :crypto.hmac(:sha512, entropy, salt)
-    iterate(entropy, @pbkdf2_initial_round + 1, initial_round, initial_round)
-    |> Base.encode16(case: :lower)
-  end
 
   def master_keys(encoded_seed) do
     decoded_seed = encoded_seed
