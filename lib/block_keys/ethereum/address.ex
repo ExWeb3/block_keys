@@ -4,6 +4,7 @@ defmodule BlockKeys.Ethereum.Address do
   def from_xpub(xpub) do
     xpub
     |> maybe_decode()
+    |> decompress()
     |> keccak256()
     |> to_address()
   end
@@ -15,6 +16,12 @@ defmodule BlockKeys.Ethereum.Address do
     decoded_key.key
   end
   defp maybe_decode(key), do: key
+
+  defp decompress(key) do
+    {:ok, key } = :libsecp256k1.ec_pubkey_decompress(key)
+    << _prefix::binary-8, pub_key::binary >> = key
+    pub_key
+  end
 
   defp to_address(<<_::binary-12, address::binary-20>>) do
     "0x"
