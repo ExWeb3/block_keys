@@ -51,34 +51,40 @@ defmodule BlockKeys.Bip32Mnemonic do
     |> word_indexes(words())
     |> Enum.map(fn index -> to_bitstring(index, @pad_length_phrase) end)
     |> Enum.join()
-    |> remove_checksum
-    |> entropy()
+    |> bitstring_to_binary()
+    |> verify_checksum()
   end
 
   @doc """
   Given a binary of entropy it will generate teh hex encoded seed
 
   ## Examples
-      iex> BlockKeys.Bip32Mnemonic.generate_seed(<<94, 153, 64, 141, 72, 76, 59, 19, 52, 150, 206, 88, 203, 170, 99, 206, 58, 23, 66, 78, 96, 212, 191, 201, 240, 88, 140, 72, 0, 198, 158, 64>>)
-      "b156a85e86341a28503951bc4fa543b73ed203ef241ceee06386a1f9d15229a8e7c4a1709eca5306266f9a7195101219cfa5f145f574fe53a3dab481a2ea848b"
+      iex> BlockKeys.Bip32Mnemonic.generate_seed("weather neither click twin monster night bridge door immense tornado crack model canal answer harbor weasel winter fan universe burden price quote tail ride"
+      "af7f48a70d0ecedc77df984117e336e12f0f0e681a4c95b25f4f17516d7dc4cca456e3a400bd1c6a5a604af67eb58dc6e0eb46fd520ad99ef27855d119dca517"
 
   """
-  def generate_seed(entropy, password \\ "") do
-    salt = <<salt(password)::binary, 1::integer-32>>
-    initial_round = :crypto.hmac(:sha512, entropy, salt)
-    iterate(entropy, @pbkdf2_initial_round + 1, initial_round, initial_round)
+  def generate_seed(mnemonic, password \\ "") do
+    salt = <<salt(password)::binary, @pbkdf2_initial_round::integer-32>>
+    initial_round = :crypto.hmac(:sha512, mnemonic, salt)
+
+    iterate(mnemonic, @pbkdf2_initial_round + 1, initial_round, initial_round)
     |> Base.encode16(case: :lower)
   end
 
+  def iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
+  def iterate(entropy, round, previous, result) do
+    next = :crypto.hmac(:sha512, entropy, previous)
+    iterate(entropy, round + 1, next, :crypto.exor(next, result))
+  end
 
   # hash the initial entropy
-  defp entropy_hash(sequence), do: sha256(sequence)
+  defp entropy_hash(sequence), do: {sha256(sequence), sequence}
 
   # extract the first byte (8bits)
-  defp extract_checksum(<< checksum :: size(8), _bits :: bitstring >> = entropy), do: {checksum,entropy}
+  defp extract_checksum({<< checksum :: binary-1, _bits :: bitstring >>, sequence}), do: {checksum,sequence}
 
   # append the checksum to initial entropy
-  defp append_checksum({checksum, entropy}), do: entropy <> << checksum >>
+  defp append_checksum({checksum, sequence}), do: sequence <> checksum
 
   # convert a byte to a bitstring (8bits)
   def to_bitstring(byte, pad_length) do
@@ -113,14 +119,22 @@ defmodule BlockKeys.Bip32Mnemonic do
     |> List.to_tuple
   end
 
-  def entropy(bitstring) do
+  def bitstring_to_binary(bitstring) do
     Regex.scan(~r/.{8}/, bitstring)
     |> List.flatten
     |> Enum.map(&String.to_integer(&1, 2))
     |> :binary.list_to_bin()
   end
 
-  def remove_checksum(bitstring), do: String.slice(bitstring, 0..255)
+  def verify_checksum(<< entropy::binary-32, checksum::binary-1>>) do
+    << calculated_checksum::binary-1, _rest::binary >> = sha256(entropy)
+
+    if calculated_checksum == checksum do
+      entropy
+    else
+      {:error, "Checksum is not valid"}
+    end
+  end
 
   def phrase_to_list(phrase) do
     phrase
@@ -183,12 +197,6 @@ defmodule BlockKeys.Bip32Mnemonic do
 
     @public_version_number <> decoded_key.depth <> decoded_key.fingerprint <> decoded_key.index <> decoded_key.chain_code <> pub_key
     |> base58_encode
-  end
-
-  def iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
-  def iterate(entropy, round, previous, result) do
-    next = :crypto.hmac(:sha512, entropy, previous)
-    iterate(entropy, round + 1, next, :crypto.exor(next, result))
   end
 
   def parse_extended_key(key) do
