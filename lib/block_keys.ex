@@ -6,6 +6,8 @@ defmodule BlockKeys do
   alias BlockKeys.Bip32Mnemonic
   @mersenne_prime 2_147_483_647
 
+  defdelegate xpub(ext_prv_key), to: Bip32Mnemonic, as: :master_public_key
+
   def derive(<< "xpub", _rest::binary >>, << "m/", _path::binary >>), do: {:error, "Cannot derive private key from public key" }
 
 

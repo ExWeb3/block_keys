@@ -1,8 +1,8 @@
 defmodule BlockKeys.Ethereum.Address do
   alias BlockKeys.Bip32Mnemonic
 
-  def from_public_key(public_key) do
-    public_key
+  def from_xpub(xpub) do
+    xpub
     |> maybe_decode()
     |> keccak256()
     |> to_address()

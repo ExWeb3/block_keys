@@ -165,6 +165,7 @@ defmodule BlockKeys.Bip32Mnemonic do
     Base58Check.encode58check(version_prefix, bytes)
   end
 
+  def master_public_key(<< "xpub", _rest::binary >>), do: {:error, "Cannot derive master public key from another extended public key"}
   def master_public_key(extended_key) do
     decoded_key = parse_extended_key(extended_key)
     <<_prefix::binary-1, parent_priv_key::binary >> = decoded_key.key
