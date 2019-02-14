@@ -25,7 +25,7 @@ defmodule BlockKeys.Bip32Mnemonic do
 
   """
   def generate_phrase do
-    SecureRandom.random_bytes(32)
+    :crypto.strong_rand_bytes(32)
       |> entropy_hash()
       |> extract_checksum()
       |> append_checksum()
