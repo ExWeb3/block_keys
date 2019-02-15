@@ -19,7 +19,7 @@ defmodule BlockKeys.Ethereum.Address do
 
   defp decompress(key) do
     {:ok, key } = :libsecp256k1.ec_pubkey_decompress(key)
-    << _prefix::binary-8, pub_key::binary >> = key
+    << _prefix::binary-1, pub_key::binary >> = key
     pub_key
   end
 
