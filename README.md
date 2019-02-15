@@ -35,7 +35,7 @@ Now that you have the root private key you can start deriving your account exten
 unless you recycle it.
 
 ```
-BlockKeys.derive(root_key, "M/44'/60'/0'/0/0") |> BlockKeys.Ethereum.Address.from_xpub
+BlockKeys.Derivation.derive(root_key, "M/44'/60'/0'/0/0") |> BlockKeys.Ethereum.Address.from_xpub
 "0x73bb50c828fd325c011d740fde78d02528826156"
 ```
 
@@ -49,7 +49,7 @@ master_public_key = BlockKeys.derive(root_key, "M/44'/60'/0'")
 You can now use this key to generate addresses on a live server that will be in sync with your Ledger
 
 ```
-BlockKeys.derive(master_public_key, "M/0/0") |> BlockKeys.Ethereum.Address.from_xpub
+BlockKeys.Derivation.derive(master_public_key, "M/0/0") |> BlockKeys.Ethereum.Address.from_xpub
 "0x73bb50c828fd325c011d740fde78d02528826156"
 ``` 
 
@@ -71,14 +71,14 @@ Generate a master public key that you can use to generate addresses
 
 ```
 path = "M/44'/0'/0'"
-xpub = BlockKeys.derive(root_key, path)
+xpub = BlockKeys.Derivation.derive(root_key, path)
 ```
 
 ### Ethereum
 
 ```
 path = "M/60'/0'/0'"
-xpub = BlockKeys.derive(root_key, path)
+xpub = BlockKeys.Derivation.derive(root_key, path)
 ```
 
 ## Generating addresses from Master Public Key
