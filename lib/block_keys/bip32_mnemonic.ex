@@ -7,13 +7,11 @@ defmodule BlockKeys.Bip32Mnemonic do
   @pad_length_phrase 11
   @pbkdf2_rounds 2048
   @pbkdf2_initial_round 1
-
   @private_version_number <<4, 136, 173, 228>>
   @public_version_number  <<4, 136, 178, 30>>
-
   @order 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-  @mersenne_prime 2_147_483_647
 
+  def mersenne_prime, do: 2_147_483_647
 
   @doc """
   Generates the 24 random manmonic words.
@@ -255,7 +253,7 @@ defmodule BlockKeys.Bip32Mnemonic do
             |> Kernel.+(1)
             |> :binary.encode_unsigned
 
-    if (index |> :binary.decode_unsigned > @mersenne_prime) && (decoded_key.version_number !== @private_version_number) do
+    if (index |> :binary.decode_unsigned > mersenne_prime()) && (decoded_key.version_number !== @private_version_number) do
       {:error, "Cannot do hardened derivation from public key"}
     else
 
@@ -289,7 +287,7 @@ defmodule BlockKeys.Bip32Mnemonic do
             |> Kernel.+(1)
             |> :binary.encode_unsigned
 
-    parent_key = if index |> :binary.decode_unsigned > @mersenne_prime do
+    parent_key = if index |> :binary.decode_unsigned > mersenne_prime() do
       <<0>> <> parent_priv_key
     else
       parent_pub_key
