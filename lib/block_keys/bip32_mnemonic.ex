@@ -159,13 +159,10 @@ defmodule BlockKeys.Bip32Mnemonic do
 
     << private_key::binary-32, chain_code::binary-32 >> = :crypto.hmac(:sha512, "Bitcoin seed", decoded_seed)
     
-    %{
-      private_key: private_key,
-      chain_code: chain_code
-    }
+    { private_key, chain_code }
   end
 
-  def master_private_key(extended_key, chain_code) do
+  def master_private_key({extended_key, chain_code}) do
     version_number = @private_version_number 
     depth = <<0>>
     fingerprint = <<0::32>>
