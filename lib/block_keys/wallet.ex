@@ -3,15 +3,17 @@ defmodule BlockKeys.Wallet do
 
   def generate() do
     phrase = Bip32Mnemonic.generate_phrase()
-
-    %{ private_key: private_key, chain_code: chain_code } = 
-      phrase 
-      |> Bip32Mnemonic.generate_seed(phrase)
-      |> Bip32Mnemonic.master_keys
-
-    {
-      phrase,
-      Bip32Mnemonic.master_private_key(private_key, chain_code)
+    
+    %{
+      mnemonic: phrase,
+      root_key: from_mnemonic(phrase)
     }
+  end
+
+  def from_mnemonic(phrase) do
+    phrase
+    |> Bip32Mnemonic.generate_seed()
+    |> Bip32Mnemonic.master_keys()
+    |> Bip32Mnemonic.master_private_key
   end
 end
