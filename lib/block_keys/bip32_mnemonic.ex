@@ -168,14 +168,7 @@ defmodule BlockKeys.Bip32Mnemonic do
     fingerprint = <<0::32>>
     index = <<0::32>>
 
-    version_number 
-    |> Kernel.<>(depth)
-    |> Kernel.<>(fingerprint)
-    |> Kernel.<>(index)
-    |> Kernel.<>(chain_code)
-    |> Kernel.<>(<<0>>)
-    |> Kernel.<>(extended_key)
-    |> base58_encode
+    encode_extended_key(version_number, depth, fingerprint, index, chain_code, extended_key)
   end
 
   def base58_encode(bytes, version_prefix \\ "") do
@@ -198,13 +191,14 @@ defmodule BlockKeys.Bip32Mnemonic do
       << 0x03::8, x_coordinate::256 >>
     end
 
-    @public_version_number
-    |> Kernel.<>(decoded_key.depth)
-    |> Kernel.<>(decoded_key.fingerprint)
-    |> Kernel.<>(decoded_key.index)
-    |> Kernel.<>(decoded_key.chain_code)
-    |> Kernel.<>(pub_key)
-    |> base58_encode
+    encode_extended_key(
+      @public_version_number, 
+      decoded_key.depth, 
+      decoded_key.fingerprint, 
+      decoded_key.index, 
+      decoded_key.chain_code, 
+      pub_key
+    )
   end
 
   def parse_extended_key(key) do
@@ -270,13 +264,8 @@ defmodule BlockKeys.Bip32Mnemonic do
 
       {:ok, public_child_key } = :libsecp256k1.ec_pubkey_tweak_add(parent_pub_key, derived_key)
 
-      @public_version_number
-      |> Kernel.<>(depth) 
-      |> Kernel.<>(fingerprint) 
-      |> Kernel.<>(index) 
-      |> Kernel.<>(child_chain) 
-      |> Kernel.<>(public_child_key)
-      |> base58_encode
+
+      encode_extended_key(@public_version_number, depth, fingerprint, index, child_chain, public_child_key)
     end
   end
 
@@ -317,13 +306,23 @@ defmodule BlockKeys.Bip32Mnemonic do
 
     <<fingerprint::binary-4, _rest::binary>> = hash160(parent_pub_key)
 
-    @private_version_number 
+    encode_extended_key(@private_version_number, depth, fingerprint, index, child_chain, p)
+  end
+
+  defp encode_extended_key(version_number, depth, fingerprint, index, chain_code, key) do
+    key = case version_number do
+      @private_version_number ->
+        <<0>> <> key
+      @public_version_number ->
+        key
+    end
+
+    version_number 
     |> Kernel.<>(depth) 
     |> Kernel.<>(fingerprint) 
     |> Kernel.<>(index) 
-    |> Kernel.<>(child_chain)
-    |> Kernel.<>(<<0>>) 
-    |> Kernel.<>(p)
+    |> Kernel.<>(chain_code)
+    |> Kernel.<>(key)
     |> base58_encode
-  end
+  end 
 end
