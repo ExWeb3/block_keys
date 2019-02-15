@@ -14,6 +14,6 @@ defmodule BlockKeys.Wallet do
     phrase
     |> Bip32Mnemonic.generate_seed()
     |> Bip32Mnemonic.master_keys()
-    |> Bip32Mnemonic.master_private_key
+    |> Bip32Mnemonic.master_private_key()
   end
 end
