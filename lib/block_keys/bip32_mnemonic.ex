@@ -62,11 +62,16 @@ defmodule BlockKeys.Bip32Mnemonic do
 
   """
   def generate_seed(mnemonic, password \\ "") do
-    salt = <<salt(password)::binary, @pbkdf2_initial_round::integer-32>>
-    initial_round = :crypto.hmac(:sha512, mnemonic, salt)
+    case entropy_from_phrase(mnemonic) do
+      {:error, message} -> 
+        {:error, message}
+      _ ->
+        salt = <<salt(password)::binary, @pbkdf2_initial_round::integer-32>>
+        initial_round = :crypto.hmac(:sha512, mnemonic, salt)
 
-    iterate(mnemonic, @pbkdf2_initial_round + 1, initial_round, initial_round)
-    |> Base.encode16(case: :lower)
+        iterate(mnemonic, @pbkdf2_initial_round + 1, initial_round, initial_round)
+        |> Base.encode16(case: :lower)
+    end
   end
 
   def iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
