@@ -20,7 +20,7 @@ jobs:
       - run: mix compile
 
       - run:
-        command: cd deps/libsecp256k1 && make
+      command: cd deps/libsecp256k1 && make
 
       # specify any bash command here prefixed with `run: `
       - run: mix test
