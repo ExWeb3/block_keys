@@ -3,6 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-elixir/ for more details
 version: 2
 jobs:
+  compile_deps: 
   build:
     docker:
       # specify the version here
@@ -15,10 +16,12 @@ jobs:
       - run: mix local.hex --force
       - run: mix local.rebar --force
 
+      - run: mix deps.get
+      - run: mix compile
+
       - run:
-        command: make
-        working_directory: "deps/libsecp256k1"
+        name: "Compile libsecp256k1 NIF module"
+        command: cd deps/libsecp256k1 && make
 
       # specify any bash command here prefixed with `run: `
-      - run: mix deps.get
       - run: mix test
