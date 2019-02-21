@@ -1,6 +1,6 @@
 defmodule BlockKeys do
   @moduledoc """
-  Generates or restores from mnemonic phrases
+  Generates or restores a wallet from mnemonic phrases
   """
 
   alias BlockKeys.Mnemonic
