@@ -25,7 +25,7 @@ Using the Master Public Key you can also setup a watch-only wallet in order to r
 input that in this library make sure you audit the code to make sure everything looks legit.**
 
 ```
-root_key = BlockKeys.Wallet.from_mnemonic("nurse grid sister metal flock choice system control about mountain sister rapid hundred render shed chicken print cover tape sister zero bronze tattoo stairs")
+root_key = BlockKeys.from_mnemonic("nurse grid sister metal flock choice system control about mountain sister rapid hundred render shed chicken print cover tape sister zero bronze tattoo stairs")
 "xprv9s21ZrQH143K35qGjQ6GG1wGHFZP7uCZA1WBdUJA8vBZqESQXQGA4A9d4eve5JqWB5m8YTMcNe8cc7c3FVzDGNcmiabi9WQycbFeEvvJF2D"
 ``` 
 
@@ -35,21 +35,21 @@ Now that you have the root private key you can start deriving your account exten
 unless you recycle it.
 
 ```
-BlockKeys.Derivation.derive(root_key, "M/44'/60'/0'/0/0") |> BlockKeys.Ethereum.Address.from_xpub
+BlockKeys.CKD.derive(root_key, "M/44'/60'/0'/0/0") |> BlockKeys.Ethereum.Address.from_xpub
 "0x73bb50c828fd325c011d740fde78d02528826156"
 ```
 
 Note that you can generate a master public key by deriving the Account path:
 
 ```
-master_public_key = BlockKeys.derive(root_key, "M/44'/60'/0'")
+master_public_key = BlockKeys.CKD.derive(root_key, "M/44'/60'/0'")
 "xpub6C821eJHTSrPMS1sGZ4o5QDDAfWyViQek3fVwUA53FkgndTwjxL7PS1pFP9EdqKpejTZeaQkmxoergebKCpVpPuTdE67Kzn2jZn9AL9TzxD"
 ```
 
 You can now use this key to generate addresses on a live server that will be in sync with your Ledger
 
 ```
-BlockKeys.Derivation.derive(master_public_key, "M/0/0") |> BlockKeys.Ethereum.Address.from_xpub
+BlockKeys.Derivation.CKD.derive(master_public_key, "M/0/0") |> BlockKeys.Ethereum.Address.from_xpub
 "0x73bb50c828fd325c011d740fde78d02528826156"
 ``` 
 
@@ -60,7 +60,7 @@ We have to use a non hardened path here because we're feeding a public key (hard
 Generate the mnemonic phrase and the master private key
 
 ```
-%{mnemonic: mnemonic, root_key: root_key} = BlockKeys.Wallet.generate()
+%{mnemonic: mnemonic, root_key: root_key} = BlockKeys.generate()
 ```
 
 ## Generate Master Public Key
@@ -71,14 +71,14 @@ Generate a master public key that you can use to generate addresses
 
 ```
 path = "M/44'/0'/0'"
-xpub = BlockKeys.Derivation.derive(root_key, path)
+xpub = BlockKeys.CKD.derive(root_key, path)
 ```
 
 ### Ethereum
 
 ```
 path = "M/60'/0'/0'"
-xpub = BlockKeys.Derivation.derive(root_key, path)
+xpub = BlockKeys.CKD.derive(root_key, path)
 ```
 
 ## Generating addresses from Master Public Key
