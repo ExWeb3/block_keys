@@ -1,5 +1,5 @@
 defmodule BlockKeys.Ethereum.Address do
-  alias BlockKeys.Bip32Mnemonic
+  alias BlockKeys.Encoding
 
   def from_xpub(xpub) do
     xpub
@@ -11,7 +11,7 @@ defmodule BlockKeys.Ethereum.Address do
 
   defp maybe_decode(<< "xpub", _rest::binary >> = encoded_key) do
     decoded_key = encoded_key
-                  |> Bip32Mnemonic.parse_extended_key
+                  |> Encoding.decode_extended_key
 
     decoded_key.key
   end
