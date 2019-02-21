@@ -15,6 +15,10 @@ jobs:
       - run: mix local.hex --force
       - run: mix local.rebar --force
 
+      - run:
+        command: make
+        working_directory: "deps/libsecp256k1"
+
       # specify any bash command here prefixed with `run: `
       - run: mix deps.get
       - run: mix test
