@@ -123,7 +123,6 @@ defmodule BlockKeys.CKD do
     Encoding.encode_extended_key(@private_version_number, depth, fingerprint, index, child_chain, p)
   end
 
-
   def master_keys(encoded_seed) do
     decoded_seed = encoded_seed
                    |> Base.decode16!(case: :lower)
