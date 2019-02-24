@@ -87,8 +87,6 @@ defmodule CKDTest do
                            |> CKD.master_private_key
 
       master_public_key = CKD.master_public_key(master_private_key)
-                          |> Encoding.decode_extended_key
-
 
       child_extended_public_key = CKD.child_key_public(master_public_key, 0)
 

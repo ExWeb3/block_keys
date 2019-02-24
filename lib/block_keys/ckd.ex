@@ -55,33 +55,44 @@ defmodule BlockKeys.CKD do
   end
 
   def child_key({:error, _ } = error, _), do: error
-  def child_key(<< "xpub", _rest::binary >> = extended_key, child_index), do: child_key_public(Encoding.decode_extended_key(extended_key), child_index)
-  def child_key(<< "xprv", _rest::binary >> = extended_key, child_index), do: child_key_private(Encoding.decode_extended_key(extended_key), child_index)
+  def child_key(<< "xpub", _rest::binary >> = key, index), do: child_key_public(key, index)
+  def child_key(<< "xprv", _rest::binary >> = key, index), do: child_key_private(Encoding.decode_extended_key(key), index)
   
-  def child_key_public(decoded_key, child_index) do
-    parent_pub_key  = decoded_key.key
+  def child_key_public(key, child_index) do
+    decoded_key = Encoding.decode_extended_key(key)
+    fingerprint = get_fingerprint(decoded_key.key)
+    depth       = encode_depth(decoded_key.depth)
 
-    <<fingerprint::binary-4, _rest::binary>> = Crypto.hash160(parent_pub_key)
-
-    index = << child_index::32>>
-    depth = decoded_key.depth 
-            |> :binary.decode_unsigned 
-            |> Kernel.+(1)
-            |> :binary.encode_unsigned
-
-    if (index |> :binary.decode_unsigned > @mersenne_prime) && (decoded_key.version_number !== @private_version_number) do
-      {:error, "Cannot do hardened derivation from public key"}
-    else
-
-      hash_value = :crypto.hmac(:sha512, decoded_key.chain_code, parent_pub_key <> index)
-      << derived_key::binary-32, child_chain::binary-32 >> = hash_value
-
-      {:ok, public_child_key } = :libsecp256k1.ec_pubkey_tweak_add(parent_pub_key, derived_key)
-
-
-      Encoding.encode_extended_key(@public_version_number, depth, fingerprint, index, child_chain, public_child_key)
-    end
+    derive_child_key(decoded_key, child_index, depth, fingerprint)
   end
+
+  def encode_depth(depth) do
+    depth
+    |> :binary.decode_unsigned 
+    |> Kernel.+(1)
+    |> :binary.encode_unsigned
+  end
+
+  def get_fingerprint(key) do
+    <<fingerprint::binary-4, _rest::binary>> = Crypto.hash160(key)
+    fingerprint
+  end
+
+  def derive_child_key(%{ version_number: @public_version_number }, index, _, _) 
+  when index > @mersenne_prime do
+    {:error, "Cannot do hardened derivation from public key"}
+  end
+
+  def derive_child_key(decoded_key, index, depth, fingerprint) do
+    {decoded_key.key, decoded_key.chain_code, << index::32>>}
+    |> Crypto.hmac512()
+    |> Crypto.ec_pubkey_tweak_add(decoded_key.key)
+    |> Tuple.append(depth)
+    |> Tuple.append(fingerprint)
+    |> Tuple.append(index)
+    |> Encoding.encode_public()
+  end
+
 
   def child_key_private(decoded_key, child_index) do
     <<_prefix::binary-1, parent_priv_key::binary >> = decoded_key.key

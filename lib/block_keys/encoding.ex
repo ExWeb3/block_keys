@@ -50,5 +50,16 @@ defmodule BlockKeys.Encoding do
     |> Kernel.<>(chain_code)
     |> Kernel.<>(key)
     |> base58_encode
-  end 
+  end
+
+  def encode_public({:ok, key, chain_code, depth, fingerprint, index}) do
+    encode_extended_key(
+      @public_version_number, 
+      depth, 
+      fingerprint, 
+      << index::32 >>, 
+      chain_code, 
+      key
+    )
+  end
 end
