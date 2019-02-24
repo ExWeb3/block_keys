@@ -25,4 +25,9 @@ defmodule BlockKeys.Crypto do
     :libsecp256k1.ec_pubkey_tweak_add(key, derived_key)
     |> Tuple.append(child_chain)
   end
+
+  def public_key(private_key) do
+    {public_key, _} = :crypto.generate_key(:ecdh, :secp256k1, private_key)
+    public_key
+  end
 end

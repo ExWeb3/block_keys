@@ -1,7 +1,7 @@
 defmodule CKDTest do
   use ExUnit.Case, async: true
 
-  alias BlockKeys.{CKD, Mnemonic, Encoding}
+  alias BlockKeys.{CKD, Mnemonic}
 
   describe "derive/2" do
     test "derives extended private key from parent extended private key" do
@@ -102,7 +102,6 @@ defmodule CKDTest do
 
       master_private_key = CKD.master_keys(seed)
                            |> CKD.master_private_key
-                           |> Encoding.decode_extended_key
 
       child_extended_private_key = CKD.child_key_private(master_private_key, 0)
 

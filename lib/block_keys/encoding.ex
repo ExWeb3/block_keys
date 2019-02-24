@@ -62,4 +62,15 @@ defmodule BlockKeys.Encoding do
       key
     )
   end
+
+  def encode_private(key, depth, fingerprint, index, chain_code) do
+    encode_extended_key(
+      @private_version_number, 
+      depth, 
+      fingerprint, 
+      << index::32 >>, 
+      chain_code, 
+      key
+    )
+  end
 end
