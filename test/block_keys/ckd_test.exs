@@ -17,6 +17,12 @@ defmodule CKDTest do
 
       assert CKD.derive(xpub, path) == {:error, "Cannot derive private key from public key"}
     end
+    test "does not perform hard derivation from extended public key" do
+      path = "M/44'/0'/0'"
+      xpub = "xpub661MyMwAqRbcGuhqR3C5NZaPT6MufbYsyuvFVW4MTLDXhRtkqMgqZ9cW4uH7fRFEYpkQMR2ze5wwG8dhdopY2z3m2aqnYoi8XtSD6YP6SN7"
+
+      assert CKD.derive(xpub, path) == {:error, "Cannot do hardened derivation from public key"}
+    end
 
     test "derives xpub from master using BIP44 path" do
       path = "M/44'/0'/0'"
