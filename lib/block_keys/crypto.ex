@@ -21,9 +21,8 @@ defmodule BlockKeys.Crypto do
     :crypto.hmac(:sha512, chain_code, key <> index)
   end
 
-  def ec_pubkey_tweak_add(<< derived_key::binary-32, child_chain::binary-32>>, key ) do
-    :libsecp256k1.ec_pubkey_tweak_add(key, derived_key)
-    |> Tuple.append(child_chain)
+  def ec_point_addition(parent_key, child_key) do
+    :libsecp256k1.ec_pubkey_tweak_add(parent_key, child_key)
   end
 
   def public_key(private_key) do
