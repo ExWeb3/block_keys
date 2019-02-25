@@ -9,6 +9,8 @@ defmodule BlockKeys.MixProject do
       description: description(),
       start_permanent: Mix.env() == :prod,
       source_url: "https://github.com/agilealpha/block_keys",
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
       name: "BlockKeys",
       deps: deps()
     ]
@@ -32,7 +34,8 @@ defmodule BlockKeys.MixProject do
       {:secure_random, "~> 0.5"},
       {:libsecp256k1, "~> 0.1.9"},
       {:keccakf1600, "~> 2.0", hex: :keccakf1600_orig},
-      {:base58check, github: "tzumby/base58check"}
+      {:base58check, github: "tzumby/base58check"},
+      {:excoveralls, "~> 0.10", only: :test}
     ]
   end
 end
