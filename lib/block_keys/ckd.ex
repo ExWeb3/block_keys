@@ -194,24 +194,26 @@ defmodule BlockKeys.CKD do
     fingerprint = <<0::32>>
     index = <<0::32>>
 
-    Encoding.encode_extended_key(version_number, depth, fingerprint, index, chain_code, extended_key)
+    Encoding.encode_extended_key(
+      version_number, 
+      depth, 
+      fingerprint, 
+      index, 
+      chain_code, 
+      extended_key
+    )
   end
 
-  def master_public_key(<< "xpub", _rest::binary >>), do: {:error, "Cannot derive master public key from another extended public key"}
-  def master_public_key(extended_key) do
-    decoded_key = Encoding.decode_extended_key(extended_key)
-    <<_prefix::binary-1, parent_priv_key::binary >> = decoded_key.key
+  def master_public_key(<< "xpub", _rest::binary >>), 
+  do: {:error, "Cannot derive master public key from another extended public key"}
 
-    {pub_key, _parent_priv_key } = :crypto.generate_key(:ecdh, :secp256k1, parent_priv_key)
+  def master_public_key(key) do
+    decoded_key = Encoding.decode_extended_key(key)
 
-    # split into x and y coordinates
-    << 0x04::8, x_coordinate::256, y_coordinate::256 >> = pub_key
-
-    pub_key = if rem(y_coordinate, 2) === 0 do
-      << 0x02::8, x_coordinate::256 >>  
-    else
-      << 0x03::8, x_coordinate::256 >>
-    end
+    data = decoded_key
+           |> slice_prefix()
+           |> put_uncompressed_parent_pub(%{ index: decoded_key.index})
+           |> put_compressed_parent_pub()
 
     Encoding.encode_extended_key(
       @public_version_number, 
@@ -219,7 +221,7 @@ defmodule BlockKeys.CKD do
       decoded_key.fingerprint, 
       decoded_key.index, 
       decoded_key.chain_code, 
-      pub_key
+      data.parent_pub_key
     )
   end
 
