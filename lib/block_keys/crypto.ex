@@ -17,10 +17,6 @@ defmodule BlockKeys.Crypto do
     :crypto.hash(:ripemd160, data)
   end
 
-  def hmac512({key, chain_code, index}) do
-    :crypto.hmac(:sha512, chain_code, key <> index)
-  end
-
   def ec_point_addition(parent_key, child_key) do
     :libsecp256k1.ec_pubkey_tweak_add(parent_key, child_key)
   end
