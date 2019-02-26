@@ -57,72 +57,123 @@ defmodule BlockKeys.CKD do
   def child_key({:error, _ } = error, _), do: error
   def child_key(<< "xpub", _rest::binary >> = key, index), do: child_key_public(key, index)
   def child_key(<< "xprv", _rest::binary >> = key, index), do: child_key_private(key, index)
-  
+
   def child_key_public(key, child_index) do
-    decoded_key = Encoding.decode_extended_key(key)
-    fingerprint = get_fingerprint(decoded_key.key)
-    depth       = encode_depth(decoded_key.depth)
-
-    derive_child_pub_key(decoded_key, child_index, depth, fingerprint)
-  end
-
-  def encode_depth(depth) do
-    depth
-    |> :binary.decode_unsigned 
-    |> Kernel.+(1)
-    |> :binary.encode_unsigned
-  end
-
-  def get_fingerprint(key) do
-    <<fingerprint::binary-4, _rest::binary>> = Crypto.hash160(key)
-    fingerprint
-  end
-
-  def derive_child_key(%{ version_number: @public_version_number }, index, _, _) 
-  when index > @mersenne_prime do
-    {:error, "Cannot do hardened derivation from public key"}
-  end
-
-  def derive_child_pub_key(decoded_key, index, depth, fingerprint) do
-    {decoded_key.key, decoded_key.chain_code, << index::32>>}
-    |> Crypto.hmac512()
-    |> Crypto.ec_pubkey_tweak_add(decoded_key.key)
-    |> Tuple.append(depth)
-    |> Tuple.append(fingerprint)
-    |> Tuple.append(index)
+    key
+    |> Encoding.decode_extended_key()
+    |> put_decoded_key()
+    |> put_fingerprint(%{ index: child_index })
+    |> put_depth()
+    |> put_child_key_and_chaincode_pub()
+    |> ec_point_addition()
+    |> check_path()
     |> Encoding.encode_public()
   end
 
   def child_key_private(key, child_index) do
-    decoded_key = Encoding.decode_extended_key(key)
-    <<_prefix::binary-1, parent_priv_key::binary >> = decoded_key.key
-
-    parent_pub_uncompressed = Crypto.public_key(parent_priv_key)
-    parent_pub_key          = compress_key(parent_pub_uncompressed)
-    fingerprint             = get_fingerprint(parent_pub_key)
-    depth                   = encode_depth(decoded_key.depth)
-    parent_key              = get_key(child_index, parent_priv_key, parent_pub_key)
-
-    {parent_key, decoded_key.chain_code, << child_index::32>>}
-    |> Crypto.hmac512()
-    |> prepare_key(decoded_key)
-    |> derive_child_priv_key(child_index, depth, fingerprint)
+    key
+    |> Encoding.decode_extended_key()
+    |> slice_prefix()
+    |> put_uncompressed_parent_pub(%{index: child_index})
+    |> put_compressed_parent_pub()
+    |> put_fingerprint()
+    |> put_depth()
+    |> put_private_or_public_key()
+    |> put_child_key_and_chaincode_priv()
+    |> calculate_order()
+    |> Encoding.encode_private()
+  end
+  
+  defp put_decoded_key(decoded_key) do
+    %{ decoded_key: decoded_key }
   end
 
-  def derive_child_priv_key({key, chain_code}, index, depth, fingerprint) do
-    Encoding.encode_private(key, depth, fingerprint, index, chain_code)
+  def put_private_or_public_key(%{ index: index, parent_priv_key: priv_key} = data) 
+  when index > @mersenne_prime do
+    data
+    |> Map.merge(%{ derived_key: <<0>> <> priv_key })
   end
 
-  def get_key(index, private_key, _) when index > @mersenne_prime, do: <<0>> <> private_key
-  def get_key(_, _, public_key), do: public_key
+  def put_private_or_public_key(%{ parent_pub_key: pub_key } = data) do
+    data
+    |> Map.merge(%{ derived_key: pub_key })
+  end
 
-  def prepare_key(<< key::256, chain_code::binary >>, decoded_key) do
-    p = key
-        |> Kernel.+( :binary.decode_unsigned(decoded_key.key))
+  def calculate_order(%{ derived_key: key, decoded_key: %{ key: parent_key }} = data) do
+    p = key 
+        |> Kernel.+( :binary.decode_unsigned(parent_key))
         |> rem(@order)
         |> :binary.encode_unsigned
 
-    {p, chain_code}
+    data
+    |> Map.merge(%{ derived_key: p})
+  end
+
+  def slice_prefix(%{ key: <<_prefix::binary-1, parent_priv_key::binary >> } = decoded_key) do
+    %{ parent_priv_key: parent_priv_key }
+    |> Map.merge(%{decoded_key: decoded_key})
+  end
+
+  def put_uncompressed_parent_pub(%{ parent_priv_key: parent_priv_key } = data, index) do
+    data
+    |> Map.merge(%{ parent_pub_key_uncompressed: Crypto.public_key(parent_priv_key) })
+    |> Map.merge(index)
+  end
+
+  def put_compressed_parent_pub(%{ parent_pub_key_uncompressed: key } = data) do
+    data
+    |> Map.merge(%{ parent_pub_key: compress_key(key) })
+  end
+
+  def check_path(%{ index: index, decoded_key: %{ version_number: @public_version_number }})
+  when index > @mersenne_prime do
+    {:error, "Cannot do hardened derivation from public key"}
+  end
+  def check_path(data), do: data
+
+  defp put_fingerprint(%{ parent_pub_key: key} = data) do
+    <<fingerprint::binary-4, _rest::binary>> = Crypto.hash160(key)
+
+    data
+    |> Map.merge(%{ fingerprint: fingerprint })
+  end
+  defp put_fingerprint(%{ decoded_key: %{ key: key } = decoded_key } = data, index) do
+    <<fingerprint::binary-4, _rest::binary>> = Crypto.hash160(key)
+
+    data
+    |> Map.merge(%{ fingerprint: fingerprint, decoded_key: decoded_key})
+    |> Map.merge(index)
+  end
+
+  defp put_depth(%{ decoded_key: %{ depth: depth } } = data) do
+    depth = depth
+            |> :binary.decode_unsigned 
+            |> Kernel.+(1)
+            |> :binary.encode_unsigned
+
+    data
+    |> Map.merge(%{depth: depth})
+  end
+
+  defp put_child_key_and_chaincode_pub(%{ decoded_key: %{ chain_code: chain_code, key: key }, index: index} = data) do
+    << derived_key::binary-32, child_chain::binary-32 >> =  :crypto.hmac(:sha512, chain_code, key <> <<index::32>>)
+
+    data
+    |> Map.merge(%{ child_chain: child_chain, derived_key: derived_key })
+  end
+
+  defp put_child_key_and_chaincode_priv(%{ decoded_key: %{ chain_code: chain_code }, index: index, derived_key: derived_key} = data) do
+    << derived_key::256, child_chain::binary >> = :crypto.hmac(:sha512, chain_code, derived_key <> <<index::32>>)
+
+    data
+    |> Map.merge(%{ child_chain: child_chain, derived_key: derived_key })
+  end
+
+  defp ec_point_addition(%{ derived_key: derived_key, decoded_key: %{ key: key }} = data) do
+    {:ok, child_key } = Crypto.ec_point_addition(key, derived_key)
+
+    data
+    |> Map.merge(%{ derived_key: child_key }) 
   end
 
   def compress_key(<< 0x04::8, x::256, y::256 >>) when rem(y, 2) === 0, do: << 0x02::8, x::256 >>  
@@ -133,7 +184,7 @@ defmodule BlockKeys.CKD do
                    |> Base.decode16!(case: :lower)
 
     << private_key::binary-32, chain_code::binary-32 >> = :crypto.hmac(:sha512, "Bitcoin seed", decoded_seed)
-    
+
     { private_key, chain_code }
   end
 
