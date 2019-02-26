@@ -52,25 +52,26 @@ defmodule BlockKeys.Encoding do
     |> base58_encode
   end
 
-  def encode_public({:ok, key, chain_code, depth, fingerprint, index}) do
+  def encode_public(%{ derived_key: derived_key, child_chain: child_chain, fingerprint: fingerprint, index: index, depth: depth}) do
     encode_extended_key(
       @public_version_number, 
       depth, 
       fingerprint, 
       << index::32 >>, 
-      chain_code, 
-      key
+      child_chain, 
+      derived_key
     )
   end
+  def encode_public({:error, message} = payload), do: payload
 
-  def encode_private(key, depth, fingerprint, index, chain_code) do
+  def encode_private(%{ derived_key: derived_key, child_chain: child_chain, fingerprint: fingerprint, index: index, depth: depth}) do
     encode_extended_key(
       @private_version_number, 
       depth, 
       fingerprint, 
       << index::32 >>, 
-      chain_code, 
-      key
+      child_chain, 
+      derived_key
     )
   end
 end
