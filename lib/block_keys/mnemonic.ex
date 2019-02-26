@@ -71,8 +71,8 @@ defmodule BlockKeys.Mnemonic do
     end
   end
 
-  def iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
-  def iterate(entropy, round, previous, result) do
+  defp iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
+  defp iterate(entropy, round, previous, result) do
     next = :crypto.hmac(:sha512, entropy, previous)
     iterate(entropy, round + 1, next, :crypto.exor(next, result))
   end
@@ -87,14 +87,14 @@ defmodule BlockKeys.Mnemonic do
   defp append_checksum({checksum, sequence}), do: sequence <> checksum
 
   # convert a byte to a bitstring (8bits)
-  def to_bitstring(byte, pad_length) do
+  defp to_bitstring(byte, pad_length) do
     byte
     |> Integer.to_string(2)
     |> String.pad_leading(pad_length, "0")
   end
 
   # split the 264bit string into groups of 11, convert to base 10 integer, map it to word list
-  def mnemonic(entropy) do
+  defp mnemonic(entropy) do
     Regex.scan(~r/.{11}/, entropy)
     |> List.flatten()
     |> Enum.map(fn binary -> 
@@ -103,7 +103,7 @@ defmodule BlockKeys.Mnemonic do
     |> Enum.join(" ")
   end
 
-  def word_index(binary, words) do
+  defp word_index(binary, words) do
     binary
     |> String.to_integer(2)
     |> element_at_index(words)
@@ -111,7 +111,7 @@ defmodule BlockKeys.Mnemonic do
 
   defp element_at_index(index, words), do: Kernel.elem(words, index)
 
-  def words do
+  defp words do
     "./assets/english.txt"
     |> File.stream!
     |> Stream.map(&String.trim/1)
@@ -119,14 +119,14 @@ defmodule BlockKeys.Mnemonic do
     |> List.to_tuple
   end
 
-  def bitstring_to_binary(bitstring) do
+  defp bitstring_to_binary(bitstring) do
     Regex.scan(~r/.{8}/, bitstring)
     |> List.flatten
     |> Enum.map(&String.to_integer(&1, 2))
     |> :binary.list_to_bin()
   end
 
-  def verify_checksum(<< entropy::binary-32, checksum::binary-1>>) do
+  defp verify_checksum(<< entropy::binary-32, checksum::binary-1>>) do
     << calculated_checksum::binary-1, _rest::binary >> = Crypto.sha256(entropy)
 
     if calculated_checksum == checksum do
@@ -136,13 +136,13 @@ defmodule BlockKeys.Mnemonic do
     end
   end
 
-  def phrase_to_list(phrase) do
+  defp phrase_to_list(phrase) do
     phrase
     |> String.split()
     |> Enum.map(&String.trim/1)
   end
 
-  def word_indexes(phrase_list, words) do
+  defp word_indexes(phrase_list, words) do
     phrase_list
     |> Enum.map(fn phrase_word ->
       words
