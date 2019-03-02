@@ -13,17 +13,19 @@ defmodule BlockKeys.Ethereum.Address do
     |> to_address()
   end
 
-  defp maybe_decode(<< "xpub", _rest::binary >> = encoded_key) do
-    decoded_key = encoded_key
-                  |> Encoding.decode_extended_key
+  defp maybe_decode(<<"xpub", _rest::binary>> = encoded_key) do
+    decoded_key =
+      encoded_key
+      |> Encoding.decode_extended_key()
 
     decoded_key.key
   end
+
   defp maybe_decode(key), do: key
 
   defp decompress(key) do
-    {:ok, key } = :libsecp256k1.ec_pubkey_decompress(key)
-    << _prefix::binary-1, pub_key::binary >> = key
+    {:ok, key} = :libsecp256k1.ec_pubkey_decompress(key)
+    <<_prefix::binary-1, pub_key::binary>> = key
     pub_key
   end
 

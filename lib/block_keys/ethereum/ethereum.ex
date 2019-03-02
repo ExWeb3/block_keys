@@ -8,6 +8,6 @@ defmodule BlockKeys.Ethereum do
 
   def address(key, path) do
     CKD.derive(key, path)
-    |> Address.from_xpub
+    |> Address.from_xpub()
   end
 end

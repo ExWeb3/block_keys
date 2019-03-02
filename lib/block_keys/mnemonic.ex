@@ -21,13 +21,13 @@ defmodule BlockKeys.Mnemonic do
   """
   def generate_phrase do
     :crypto.strong_rand_bytes(32)
-      |> entropy_hash()
-      |> extract_checksum()
-      |> append_checksum()
-      |> :binary.bin_to_list()
-      |> Enum.map(fn byte -> to_bitstring(byte, @pad_length_mnemonic) end)
-      |> Enum.join()
-      |> mnemonic()
+    |> entropy_hash()
+    |> extract_checksum()
+    |> append_checksum()
+    |> :binary.bin_to_list()
+    |> Enum.map(fn byte -> to_bitstring(byte, @pad_length_mnemonic) end)
+    |> Enum.join()
+    |> mnemonic()
   end
 
   @doc """
@@ -63,6 +63,7 @@ defmodule BlockKeys.Mnemonic do
   end
 
   defp pbkdf2_key_stretching({:error, message}, _, _), do: {:error, message}
+
   defp pbkdf2_key_stretching({:ok, _binary_mnemonic}, mnemonic, password) do
     salt = <<salt(password)::binary, @pbkdf2_initial_round::integer-32>>
     initial_round = :crypto.hmac(:sha512, mnemonic, salt)
@@ -84,6 +85,7 @@ defmodule BlockKeys.Mnemonic do
   defp maybe_return_entropy({:error, message}), do: {:error, message}
 
   defp iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
+
   defp iterate(entropy, round, previous, result) do
     next = :crypto.hmac(:sha512, entropy, previous)
     iterate(entropy, round + 1, next, :crypto.exor(next, result))
@@ -93,7 +95,8 @@ defmodule BlockKeys.Mnemonic do
   defp entropy_hash(sequence), do: {Crypto.sha256(sequence), sequence}
 
   # extract the first byte (8bits)
-  defp extract_checksum({<< checksum :: binary-1, _bits :: bitstring >>, sequence}), do: {checksum,sequence}
+  defp extract_checksum({<<checksum::binary-1, _bits::bitstring>>, sequence}),
+    do: {checksum, sequence}
 
   # append the checksum to initial entropy
   defp append_checksum({checksum, sequence}), do: sequence <> checksum
@@ -109,7 +112,7 @@ defmodule BlockKeys.Mnemonic do
   defp mnemonic(entropy) do
     Regex.scan(~r/.{11}/, entropy)
     |> List.flatten()
-    |> Enum.map(fn binary -> 
+    |> Enum.map(fn binary ->
       word_index(binary, words())
     end)
     |> Enum.join(" ")
@@ -125,21 +128,21 @@ defmodule BlockKeys.Mnemonic do
 
   defp words do
     "./assets/english.txt"
-    |> File.stream!
+    |> File.stream!()
     |> Stream.map(&String.trim/1)
-    |> Enum.to_list
-    |> List.to_tuple
+    |> Enum.to_list()
+    |> List.to_tuple()
   end
 
   defp bitstring_to_binary(bitstring) do
     Regex.scan(~r/.{8}/, bitstring)
-    |> List.flatten
+    |> List.flatten()
     |> Enum.map(&String.to_integer(&1, 2))
     |> :binary.list_to_bin()
   end
 
-  defp verify_checksum(<< entropy::binary-32, checksum::binary-1>>) do
-    << calculated_checksum::binary-1, _rest::binary >> = Crypto.sha256(entropy)
+  defp verify_checksum(<<entropy::binary-32, checksum::binary-1>>) do
+    <<calculated_checksum::binary-1, _rest::binary>> = Crypto.sha256(entropy)
 
     if calculated_checksum == checksum do
       {:ok, entropy}
@@ -158,7 +161,7 @@ defmodule BlockKeys.Mnemonic do
     phrase_list
     |> Enum.map(fn phrase_word ->
       words
-      |> Tuple.to_list
+      |> Tuple.to_list()
       |> Enum.find_index(fn el -> el === phrase_word end)
     end)
   end

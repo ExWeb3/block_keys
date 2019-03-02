@@ -11,13 +11,13 @@ defmodule BlockKeys.Encoding do
   end
 
   def decode_extended_key(key) do
-    decoded_key = 
+    decoded_key =
       Base58Check.decode58(key)
-      |> :binary.encode_unsigned
+      |> :binary.encode_unsigned()
 
-    << 
-      version_number::binary-4, 
-      depth::binary-1, 
+    <<
+      version_number::binary-4,
+      depth::binary-1,
       fingerprint::binary-4,
       index::binary-4,
       chain_code::binary-32,
@@ -36,41 +36,56 @@ defmodule BlockKeys.Encoding do
   end
 
   def encode_extended_key(version_number, depth, fingerprint, index, chain_code, key) do
-    key = case version_number do
-      @private_version_number() ->
-        <<0>> <> key
-      @public_version_number() ->
-        key
-    end
+    key =
+      case version_number do
+        @private_version_number() ->
+          <<0>> <> key
 
-    version_number 
-    |> Kernel.<>(depth) 
-    |> Kernel.<>(fingerprint) 
-    |> Kernel.<>(index) 
+        @public_version_number() ->
+          key
+      end
+
+    version_number
+    |> Kernel.<>(depth)
+    |> Kernel.<>(fingerprint)
+    |> Kernel.<>(index)
     |> Kernel.<>(chain_code)
     |> Kernel.<>(key)
     |> base58_encode
   end
 
-  def encode_public(%{ derived_key: derived_key, child_chain: child_chain, fingerprint: fingerprint, index: index, depth: depth}) do
+  def encode_public(%{
+        derived_key: derived_key,
+        child_chain: child_chain,
+        fingerprint: fingerprint,
+        index: index,
+        depth: depth
+      }) do
     encode_extended_key(
-      @public_version_number, 
-      depth, 
-      fingerprint, 
-      << index::32 >>, 
-      child_chain, 
+      @public_version_number,
+      depth,
+      fingerprint,
+      <<index::32>>,
+      child_chain,
       derived_key
     )
   end
+
   def encode_public({:error, message} = payload), do: payload
 
-  def encode_private(%{ derived_key: derived_key, child_chain: child_chain, fingerprint: fingerprint, index: index, depth: depth}) do
+  def encode_private(%{
+        derived_key: derived_key,
+        child_chain: child_chain,
+        fingerprint: fingerprint,
+        index: index,
+        depth: depth
+      }) do
     encode_extended_key(
-      @private_version_number, 
-      depth, 
-      fingerprint, 
-      << index::32 >>, 
-      child_chain, 
+      @private_version_number,
+      depth,
+      fingerprint,
+      <<index::32>>,
+      child_chain,
       derived_key
     )
   end

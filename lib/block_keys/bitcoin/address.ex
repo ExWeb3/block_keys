@@ -8,13 +8,13 @@ defmodule BlockKeys.Bitcoin.Address do
   def from_xpub(xpub) do
     xpub
     |> maybe_decode()
-    |> Crypto.hash160
+    |> Crypto.hash160()
     |> Encoding.base58_encode(<<0>>)
   end
 
-  defp maybe_decode(<< "xpub", _rest::binary >> = encoded_key) do
+  defp maybe_decode(<<"xpub", _rest::binary>> = encoded_key) do
     encoded_key
-    |> Encoding.decode_extended_key
+    |> Encoding.decode_extended_key()
     |> Map.fetch!(:key)
   end
 

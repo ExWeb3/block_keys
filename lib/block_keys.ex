@@ -8,7 +8,7 @@ defmodule BlockKeys do
 
   def generate() do
     phrase = Mnemonic.generate_phrase()
-    
+
     %{
       mnemonic: phrase,
       root_key: from_mnemonic(phrase)
