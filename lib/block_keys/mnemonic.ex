@@ -42,12 +42,9 @@ defmodule BlockKeys.Mnemonic do
   """
   def entropy_from_phrase(phrase) do
     phrase
-    |> phrase_to_list
-    |> word_indexes(words())
-    |> Enum.map(fn index -> to_bitstring(index, @pad_length_phrase) end)
-    |> Enum.join()
-    |> bitstring_to_binary()
+    |> phrase_to_binary()
     |> verify_checksum()
+    |> maybe_return_entropy()
   end
 
   @doc """
@@ -59,17 +56,32 @@ defmodule BlockKeys.Mnemonic do
 
   """
   def generate_seed(mnemonic, password \\ "") do
-    case entropy_from_phrase(mnemonic) do
-      {:error, message} -> 
-        {:error, message}
-      _ ->
-        salt = <<salt(password)::binary, @pbkdf2_initial_round::integer-32>>
-        initial_round = :crypto.hmac(:sha512, mnemonic, salt)
-
-        iterate(mnemonic, @pbkdf2_initial_round + 1, initial_round, initial_round)
-        |> Base.encode16(case: :lower)
-    end
+    mnemonic
+    |> phrase_to_binary()
+    |> verify_checksum()
+    |> pbkdf2_key_stretching(mnemonic, password)
   end
+
+  defp pbkdf2_key_stretching({:error, message}, _, _), do: {:error, message}
+  defp pbkdf2_key_stretching({:ok, _binary_mnemonic}, mnemonic, password) do
+    salt = <<salt(password)::binary, @pbkdf2_initial_round::integer-32>>
+    initial_round = :crypto.hmac(:sha512, mnemonic, salt)
+
+    iterate(mnemonic, @pbkdf2_initial_round + 1, initial_round, initial_round)
+    |> Base.encode16(case: :lower)
+  end
+
+  defp phrase_to_binary(phrase) do
+    phrase
+    |> phrase_to_list
+    |> word_indexes(words())
+    |> Enum.map(fn index -> to_bitstring(index, @pad_length_phrase) end)
+    |> Enum.join()
+    |> bitstring_to_binary()
+  end
+
+  defp maybe_return_entropy({:ok, entropy}), do: entropy
+  defp maybe_return_entropy({:error, message}), do: {:error, message}
 
   defp iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
   defp iterate(entropy, round, previous, result) do
@@ -130,7 +142,7 @@ defmodule BlockKeys.Mnemonic do
     << calculated_checksum::binary-1, _rest::binary >> = Crypto.sha256(entropy)
 
     if calculated_checksum == checksum do
-      entropy
+      {:ok, entropy}
     else
       {:error, "Checksum is not valid"}
     end
