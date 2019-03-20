@@ -9,6 +9,8 @@ defmodule BlockKeys.MixProject do
       description: description(),
       start_permanent: Mix.env() == :prod,
       source_url: "https://github.com/agilealpha/block_keys",
+      licenses: ["Apache License 2.0"],
+      links: %{"GitHub" => "https://github.com/AgileAlpha/block_keys"},
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
