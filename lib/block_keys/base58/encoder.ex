@@ -1,4 +1,4 @@
-defmodule Base58.Encoder do
+defmodule BlockKeys.Base58.Encoder do
   @btc_alphabet '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
   @xrp_alphabet 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz'
 

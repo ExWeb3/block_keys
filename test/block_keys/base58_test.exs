@@ -1,9 +1,9 @@
 defmodule Base58Test do
   use ExUnit.Case
 
-  import Base58
+  import BlockKeys.Base58
 
-  doctest Base58
+  doctest BlockKeys.Base58
 
   test "encode/1" do
     assert encode(0) == ""
@@ -25,12 +25,13 @@ defmodule Base58Test do
 
   test "correctly encodes" do
     # https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
-    assert Base58.encode_check(
+    assert encode_check(
       <<0x01,0x09,0x66,0x77,0x60,0x06,0x95,0x3D,0x55,0x67,0x43,0x9E,0x5E,0x39,0xF8,0x6A,0x0D,0x27,0x3B, 0xEE>>,
        <<0x00>>
      ) == "16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM"
   end
-    @test_hex "1e99423a4ed27608a15a2616a2b0e9e52ced330ac530edcc32c8ffc6a526aedd"
+
+  @test_hex "1e99423a4ed27608a15a2616a2b0e9e52ced330ac530edcc32c8ffc6a526aedd"
   @test_base58 "5J3mBbAH58CpQ3Y5RNJpUKPE62SQ5tfcvU2JpbnkeyhfsYB1Jcn"
 
   test "encode_check/2 accepts integer" do
@@ -53,9 +54,6 @@ defmodule Base58Test do
 
   test "decode_check/1 accepts hex and returns prefix and payload" do
     {prefix, payload} = decode_check(@test_base58, 37)
-    IO.inspect prefix
-    IO.inspect payload
-
     assert Base.encode16(payload, case: :lower) == @test_hex
     assert :binary.decode_unsigned(prefix) == 128
   end

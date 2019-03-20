@@ -1,7 +1,7 @@
-defmodule Base58.Check do
+defmodule BlockKeys.Base58.Check do
   # Based on https://github.com/lukaszsamson/base58check/blob/master/lib/base58check.ex
 
-  alias Base58.Encoder
+  alias BlockKeys.Base58.Encoder
 
   def encode_check(data, prefix) when is_binary(data) and is_binary(prefix) do
     data
@@ -72,7 +72,7 @@ defmodule Base58.Check do
 
     case valid_checksum?(generated_checksum, checksum) do
       false -> raise ArgumentError, "Checksum is not valid!"
-      true  -> {prefix, data}
+      true  -> {prefix, payload}
     end
   end
 

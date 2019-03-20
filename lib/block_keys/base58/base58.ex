@@ -1,7 +1,9 @@
-defmodule Base58 do
+defmodule BlockKeys.Base58 do
   @moduledoc """
   Documentation for Base58.
   """
+
+  alias BlockKeys.Base58
 
   defdelegate encode(data, hash \\ ""), to: Base58.Encoder
   defdelegate decode(data), to: Base58.Encoder
