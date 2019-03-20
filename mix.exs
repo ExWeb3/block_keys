@@ -38,7 +38,6 @@ defmodule BlockKeys.MixProject do
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:libsecp256k1, "~> 0.1.9"},
       {:keccakf1600, "~> 2.0", hex: :keccakf1600_orig},
-      {:base58check, github: "tzumby/base58check"},
       {:excoveralls, "~> 0.10", only: :test}
     ]
   end
