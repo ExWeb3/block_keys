@@ -6,13 +6,15 @@ defmodule BlockKeys.Encoding do
   @private_version_number <<4, 136, 173, 228>>
   @public_version_number <<4, 136, 178, 30>>
 
+  alias BlockKeys.Base58
+
   def base58_encode(bytes, version_prefix \\ "") do
-    Base58Check.encode58check(version_prefix, bytes)
+    Base58.encode_check(bytes, version_prefix)
   end
 
   def decode_extended_key(key) do
     decoded_key =
-      Base58Check.decode58(key)
+      Base58.decode(key)
       |> :binary.encode_unsigned()
 
     <<
@@ -71,7 +73,7 @@ defmodule BlockKeys.Encoding do
     )
   end
 
-  def encode_public({:error, message} = payload), do: payload
+  def encode_public({:error, _message} = payload), do: payload
 
   def encode_private(%{
         derived_key: derived_key,
