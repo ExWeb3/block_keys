@@ -17,6 +17,7 @@ defmodule BlockKeys.Crypto do
     :crypto.hash(:ripemd160, data)
   end
 
+  # tweak the child key by adding the parent key to it
   def ec_point_addition(parent_key, child_key) do
     :libsecp256k1.ec_pubkey_tweak_add(parent_key, child_key)
   end
