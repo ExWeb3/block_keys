@@ -157,9 +157,17 @@ defmodule BlockKeys.CKD do
       |> Kernel.+(:binary.decode_unsigned(parent_key))
       |> rem(@order)
       |> :binary.encode_unsigned()
+      |> pad_bytes(32)
 
     data
     |> Map.merge(%{derived_key: derived_key})
+  end
+
+  defp pad_bytes(content, total_bytes) when byte_size(content) >= total_bytes, do: content
+
+  defp pad_bytes(content, total_bytes) do
+    bits = (total_bytes - byte_size(content)) * 8
+    <<0::size(bits)>> <> content
   end
 
   defp slice_prefix(%{key: <<_prefix::binary-1, parent_priv_key::binary>>} = decoded_key) do
