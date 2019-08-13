@@ -3,6 +3,8 @@ defmodule CKDTest do
 
   alias BlockKeys.{CKD, Mnemonic}
 
+  @mersenne_prime 2_147_483_647
+
   describe "derive/2" do
     test "derives extended private key from parent extended private key" do
       path = "m/44'/0'/0'"
@@ -143,6 +145,26 @@ defmodule CKDTest do
 
       assert child_extended_private_key ==
                "xprv9u7V4PZQDn7tLUsyFfzKH1yP96ohFfBUFzSu4HAUDrAJZK7EJAkW4QdPftAnA6t3SauQvxBmMMbYb8YXYgFuyxEVaQ5tZYD74zkfZu4AuZF"
+    end
+
+    test "it returns the base58 encoded child extended public key with curve order padded to 32 bytes" do
+      mnemonic =
+        "jump essence frog wait sponsor lawsuit fringe alcohol assume bar over stick sponsor tube clerk vessel release jelly among century post century meat taxi"
+
+      seed = Mnemonic.generate_seed(mnemonic)
+
+      master_private_key =
+        CKD.master_keys(seed)
+        |> CKD.master_private_key()
+
+      child_extended_private_key =
+        master_private_key
+        |> CKD.child_key_private(44 + 1 + @mersenne_prime)
+        |> CKD.child_key_private(60 + 1 + @mersenne_prime)
+        |> CKD.child_key_private(0 + 1 + @mersenne_prime)
+
+      assert child_extended_private_key ==
+               "xprv9ynLSPkhcQzGW7R2jq1TLBPf6wRZvaS7kp9ieXMr5d7i1GPitnNn76yqzGFMqSQMmNaSvzxRTDbavJt5jACSL1bkta5yF4mzhz5P7Bgov3x"
     end
   end
 end
