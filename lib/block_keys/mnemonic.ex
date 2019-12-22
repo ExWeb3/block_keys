@@ -127,7 +127,9 @@ defmodule BlockKeys.Mnemonic do
   defp element_at_index(index, words), do: Kernel.elem(words, index)
 
   defp words do
-    "./assets/english.txt"
+    :block_keys
+    |> Application.app_dir()
+    |> Path.join("priv/assets/english.txt")
     |> File.stream!()
     |> Stream.map(&String.trim/1)
     |> Enum.to_list()
