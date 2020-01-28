@@ -1,4 +1,4 @@
-defmodule AddressTest do
+defmodule BitcoinAddressTest do
   use ExUnit.Case, async: true
 
   alias BlockKeys.Bitcoin.Address
