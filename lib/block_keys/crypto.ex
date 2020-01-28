@@ -19,11 +19,19 @@ defmodule BlockKeys.Crypto do
 
   # tweak the child key by adding the parent key to it
   def ec_point_addition(parent_key, child_key) do
-    :libsecp256k1.ec_pubkey_tweak_add(parent_key, child_key)
+    ec_module().ec_pubkey_tweak_add(parent_key, child_key)
   end
 
   def public_key(private_key) do
-    {public_key, _} = :crypto.generate_key(:ecdh, :secp256k1, private_key)
+    {:ok, public_key} = ec_module().ec_pubkey_create(private_key, :uncompressed)
     public_key
+  end
+
+  def public_key_decompress(public_key) do
+    ec_module().ec_pubkey_decompress(public_key)
+  end
+
+  defp ec_module do
+    Application.fetch_env!(:block_keys, :ec_module)
   end
 end

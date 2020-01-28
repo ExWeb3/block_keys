@@ -5,6 +5,45 @@ Currently it supports Bitcoin and Ethereum but will be extended to support a [la
 
 For low level details check the [Wiki](https://github.com/AgileAlpha/block_keys/wiki).
 
+## Installation
+
+Add the dependency to your `mix.exs`:
+
+```
+def deps do
+  [
+    {:block_keys, "~> 0.1.2"}
+  ]
+end
+```
+
+### Using a different libsecp256k1 library
+
+By default, this package depends on the [ExThereum's fork of libsecp256k1 C Nif](https://github.com/exthereum/libsecp256k1).
+
+If you prefer, you can either roll your own Crypto module or use another experimental and probably incomplete Rust based Nif
+based on [Parity's pure Rust implementation](https://crates.io/crates/libsecp256k1). 
+
+Add this additional dependency to your `mix.exs`:
+
+```
+def deps do
+  [
+    ...
+    {:rusty_secp256k1, "~> 0.1.6"}
+    ...
+  ]
+end
+```
+
+And configure the package to use it in your `config.exs` or the appropriate env configuration:
+
+```
+config :block_keys, :ec_module, RustySecp256k1
+```
+
+Note that you will need to have Rust installed and configured in order to build the `rusty_secp256k1` dependency. 
+
 ## What is this good for ?
 
 The purpose of HD wallets is to increase anonymity by generating different addresses each time you transact. For Bitcoin this means generating

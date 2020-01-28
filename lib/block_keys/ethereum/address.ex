@@ -3,7 +3,7 @@ defmodule BlockKeys.Ethereum.Address do
   Converts a public extended key into an Ethereum Address
   """
 
-  alias BlockKeys.Encoding
+  alias BlockKeys.{Encoding, Crypto}
 
   def from_xpub(xpub) do
     xpub
@@ -24,7 +24,8 @@ defmodule BlockKeys.Ethereum.Address do
   defp maybe_decode(key), do: key
 
   defp decompress(key) do
-    {:ok, key} = :libsecp256k1.ec_pubkey_decompress(key)
+    {:ok, key} = Crypto.public_key_decompress(key)
+
     <<_prefix::binary-1, pub_key::binary>> = key
     pub_key
   end
