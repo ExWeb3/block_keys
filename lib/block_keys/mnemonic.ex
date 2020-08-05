@@ -31,6 +31,26 @@ defmodule BlockKeys.Mnemonic do
   end
 
   @doc """
+  Generates the 24 manmonic words from a given entropy
+
+  ## Examples
+
+      iex> BlockKeys.Mnemonic.generate_phrase_from_enthropy()
+      BlockKeys.Mnemonic.generate_phrase_from_enthropy("1112")
+      "couple maze erosion"
+  """
+  def generate_phrase_from_enthropy(enthropy) do
+    enthropy
+    |> entropy_hash()
+    |> extract_checksum()
+    |> append_checksum()
+    |> :binary.bin_to_list()
+    |> Enum.map(fn byte -> to_bitstring(byte, @pad_length_mnemonic) end)
+    |> Enum.join()
+    |> mnemonic()
+  end
+
+  @doc """
   Takes a string of word phrases and converts them back to 256bit entropy
 
   ## Examples
