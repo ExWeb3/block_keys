@@ -13,34 +13,19 @@ defmodule BlockKeys.Mnemonic do
   @doc """
   Generates the 24 random manmonic words.
 
+  Can optionally accept entropy string to used to generate a mnemonic.
+
   ## Examples
 
       iex> BlockKeys.Bip32Mnemonic.generate_phrase()
       "baby shadow city tower diamond magnet avocado champion crash ..."
+      iex> BlockKeys.Mnemonic.generate_phrase("1234")
+      "couple muscle snack"
 
+  NOTE: For now the seed can be only generated from 32 bytes entropy
   """
-  def generate_phrase do
-    :crypto.strong_rand_bytes(32)
-    |> entropy_hash()
-    |> extract_checksum()
-    |> append_checksum()
-    |> :binary.bin_to_list()
-    |> Enum.map(fn byte -> to_bitstring(byte, @pad_length_mnemonic) end)
-    |> Enum.join()
-    |> mnemonic()
-  end
-
-  @doc """
-  Generates the 24 manmonic words from a given entropy
-
-  ## Examples
-
-      iex> BlockKeys.Mnemonic.generate_phrase_from_enthropy()
-      BlockKeys.Mnemonic.generate_phrase_from_enthropy("1112")
-      "couple maze erosion"
-  """
-  def generate_phrase_from_enthropy(enthropy) do
-    enthropy
+  def generate_phrase(entropy \\ :crypto.strong_rand_bytes(32)) do
+    entropy
     |> entropy_hash()
     |> extract_checksum()
     |> append_checksum()
