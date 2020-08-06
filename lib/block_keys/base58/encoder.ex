@@ -1,8 +1,6 @@
 defmodule BlockKeys.Base58.Encoder do
   @btc_alphabet '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-  # @xrp_alphabet 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz'
 
-  # TODO: add alphabet selection
   def alphabet, do: @btc_alphabet
 
   def encode(data, hash \\ "")
