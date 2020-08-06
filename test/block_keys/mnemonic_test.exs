@@ -3,6 +3,21 @@ defmodule MnemonicTest do
 
   alias BlockKeys.Mnemonic
 
+  describe "phrase_from_entropy" do
+    test "it generates entropy given a 24 word mnemonic with correct checksum" do
+      expected_phrase =
+        "safe result wire cattle sauce luggage couple legend pause rather employ pear trigger live daring unlock music lyrics smoke mistake endorse kite obey siren"
+
+      entropy =
+        <<190, 22, 251, 240, 146, 43, 249, 9, 140, 75, 252, 161, 118, 73, 35, 209, 14, 137, 5, 77,
+          231, 112, 145, 240, 175, 51, 70, 244, 156, 246, 101, 254>>
+
+      phrase = Mnemonic.generate_phrase(entropy)
+
+      assert expected_phrase == phrase
+    end
+  end
+
   describe "entropy_from_phrase/1" do
     test "it generates entropy given a 24 word mnemonic with correct checksum" do
       mnemonic =
