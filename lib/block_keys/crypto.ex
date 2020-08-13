@@ -32,6 +32,6 @@ defmodule BlockKeys.Crypto do
   end
 
   defp ec_module do
-    Application.fetch_env!(:block_keys, :ec_module)
+    Application.get_env(:block_keys, :ec_module, :libsecp256k1)
   end
 end
