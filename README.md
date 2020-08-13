@@ -12,7 +12,9 @@ Add the dependency to your `mix.exs`:
 ```
 def deps do
   [
-    {:block_keys, "~> 0.1.3"}
+    {:block_keys, "~> 0.2.0"},
+    {:block_address, "~> 0.1.0"},
+    {:libsecp256k1, "~> 0.1.9"}
   ]
 end
 ```
@@ -29,14 +31,10 @@ Add this additional dependency to your `mix.exs`:
 ```
 def deps do
   [
-    ...
     {:rusty_secp256k1, "~> 0.1.6"}
-    ...
   ]
 end
 ```
-
-And configure the package to use it in your `config.exs` or the appropriate env configuration:
 
 ```
 config :block_keys, :ec_module, RustySecp256k1
@@ -74,7 +72,7 @@ Now that you have the root private key you can start deriving your account exten
 unless you recycle it.
 
 ```
-BlockKeys.CKD.derive(root_key, "M/44'/60'/0'/0/0") |> BlockKeys.Ethereum.Address.from_xpub
+BlockKeys.CKD.derive(root_key, "M/44'/60'/0'/0/0") |> BlockAddress.Ethereum.address()
 "0x73bb50c828fd325c011d740fde78d02528826156"
 ```
 
@@ -88,7 +86,7 @@ master_public_key = BlockKeys.CKD.derive(root_key, "M/44'/60'/0'")
 You can now use this key to generate addresses on a live server that will be in sync with your Ledger
 
 ```
-BlockKeys.Derivation.CKD.derive(master_public_key, "M/0/0") |> BlockKeys.Ethereum.Address.from_xpub
+BlockKeys.Derivation.CKD.derive(master_public_key, "M/0/0") |> BlockAddress.Ethereum.address()
 "0x73bb50c828fd325c011d740fde78d02528826156"
 ``` 
 
@@ -130,14 +128,14 @@ This is just an example of how you would generate some sample addresses
 
 ```
 path = "M/0/0"
-address = BlockKeys.Bitcoin.address(xpub, path)
+address = BlockKeys.CKD.derive(xpub, path) |> BlockAddress.Bitcoin.address()
 ```
 
 ### Ethereum
 
 ```
 path = "M/0/0"
-address = BlockKeys.Ethereum.address(xpub, path)
+address = BlockKeys.CKD.derive(xpub, path) |> BlockAddress.Ethereum.address()
 ```
 
 ## Path and derivations
