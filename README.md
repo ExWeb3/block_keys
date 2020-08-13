@@ -1,4 +1,6 @@
-# BlockKeys
+# BlockKeys 
+
+[![Build Status](https://travis-ci.org/AgileAlpha/block_keys.svg?branch=master)](https://travis-ci.org/AgileAlpha/block_keys)
 
 BlockKeys is an Elixir implementation of BIP44 Multi-Account Hierarchy for Deterministic Wallets.
 Currently it supports Bitcoin and Ethereum but will be extended to support a [large number of coin types](https://github.com/satoshilabs/slips/blob/master/slip-0044.md) of coins in the future.
