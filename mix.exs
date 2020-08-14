@@ -4,7 +4,7 @@ defmodule BlockKeys.MixProject do
   def project do
     [
       app: :block_keys,
-      version: "0.1.4",
+      version: "0.1.5",
       elixir: "~> 1.7",
       description: description(),
       start_permanent: Mix.env() == :prod,
@@ -41,7 +41,7 @@ defmodule BlockKeys.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
-      {:keccakf1600, "~> 2.0", github: "AgileAlpha/erlang-keccakf1600"},
+      {:keccakf1600, "~> 2.0", hex: :keccakf1600_otp23},
       {:excoveralls, "~> 0.10", only: :test},
       {:libsecp256k1, "~> 0.1.9"}
     ]
