@@ -41,7 +41,7 @@ defmodule BlockKeys.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
-      {:keccakf1600, "~> 2.0", hex: :keccakf1600_orig},
+      {:keccakf1600, "~> 2.0", github: "AgileAlpha/erlang-keccakf1600"},
       {:excoveralls, "~> 0.10", only: :test},
       {:libsecp256k1, "~> 0.1.9"}
     ]
