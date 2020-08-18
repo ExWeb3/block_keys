@@ -158,6 +158,8 @@ defmodule BlockKeys.Mnemonic do
     end
   end
 
+  defp verify_checksum(_phrase), do: {:error, "Invalid mnemonic"}
+
   defp phrase_to_list(phrase) do
     phrase
     |> String.split()
