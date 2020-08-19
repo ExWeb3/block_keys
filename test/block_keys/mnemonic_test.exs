@@ -16,6 +16,13 @@ defmodule MnemonicTest do
 
       assert expected_phrase == phrase
     end
+
+    test "incorrect phrase will not cause exception" do
+      phrase =
+        "sauce luggage couple legend pause rather employ pear trigger live daring unlock music lyrics smoke mistake endorse kite obey siren"
+
+      assert {:error, "Invalid mnemonic"} == Mnemonic.generate_seed(phrase)
+    end
   end
 
   describe "entropy_from_phrase/1" do
