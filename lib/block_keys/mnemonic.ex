@@ -10,6 +10,8 @@ defmodule BlockKeys.Mnemonic do
   @pbkdf2_initial_round 1
   @pbkdf2_rounds 2048
 
+  @allowed_entropy_lengths [33, 66, 99, 132, 165, 198, 231, 264]
+
   @doc """
   Generates the 24 random manmonic words.
 
@@ -152,42 +154,44 @@ defmodule BlockKeys.Mnemonic do
   end
 
   defp verify_checksum(ent_bitstring) do
-    ent_binary = bitstring_to_binary(ent_bitstring)
+    if String.length(ent_bitstring) in @allowed_entropy_lengths do
+      ent_binary = bitstring_to_binary(ent_bitstring)
 
-    {calculated_cs, cs, entropy} =
-      case byte_size(ent_binary) do
-        33 ->
-          <<entropy::binary-32, cs::binary-1>> = ent_binary
-          <<calculated_cs::binary-1, _rest::binary>> = Crypto.sha256(entropy)
-          {calculated_cs, cs, entropy}
+      {calculated_cs, cs, entropy} =
+        case byte_size(ent_binary) do
+          33 ->
+            <<entropy::binary-32, cs::binary-1>> = ent_binary
+            <<calculated_cs::binary-1, _rest::binary>> = Crypto.sha256(entropy)
+            {calculated_cs, cs, entropy}
 
-        16 ->
-          cs = String.slice(ent_bitstring, -4, String.length(ent_bitstring))
-          ent = String.slice(ent_bitstring, 0, String.length(ent_bitstring) - 4)
+          16 ->
+            cs = String.slice(ent_bitstring, -4, String.length(ent_bitstring))
+            ent = String.slice(ent_bitstring, 0, String.length(ent_bitstring) - 4)
 
-          entropy_hash =
-            ent_bitstring
-            |> bitstring_to_binary()
-            |> Crypto.sha256()
+            entropy_hash =
+              ent_bitstring
+              |> bitstring_to_binary()
+              |> Crypto.sha256()
 
-          entropy_bitstring_hash = binary_to_bitstring(entropy_hash)
-          calculated_cs = String.slice(entropy_bitstring_hash, 0, 4)
-          {calculated_cs, cs, bitstring_to_binary(ent)}
+            entropy_bitstring_hash = binary_to_bitstring(entropy_hash)
+            calculated_cs = String.slice(entropy_bitstring_hash, 0, 4)
+            {calculated_cs, cs, bitstring_to_binary(ent)}
 
-        _ ->
-          {:ok, :ok, ent_binary}
+          _ ->
+            {:ok, :ok, ent_binary}
+        end
+
+      if calculated_cs == cs do
+        {:ok, entropy}
+      else
+        {:error, "Checksum is not valid"}
       end
-
-    if calculated_cs == cs do
-      {:ok, entropy}
     else
-      {:error, "Checksum is not valid"}
+      {:error, "Invalid mnemonic"}
     end
   end
 
-  defp verify_checksum(_phrase), do: {:error, "Invalid mnemonic"}
-
-  defp phrase_to_list(phrase) do
+  defp(phrase_to_list(phrase)) do
     phrase
     |> String.split()
     |> Enum.map(&String.trim/1)

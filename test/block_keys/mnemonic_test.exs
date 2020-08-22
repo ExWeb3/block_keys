@@ -73,6 +73,20 @@ defmodule MnemonicTest do
                "7e337e5e"
     end
 
+    test "it generates entropy given a 6 word mnemonic" do
+      mnemonic = "fury ball candy suit joy supreme"
+
+      assert Mnemonic.entropy_from_phrase(mnemonic) ==
+               "5e623c856c8789b3"
+    end
+
+    test "it generates entropy given a 9 word mnemonic" do
+      mnemonic = "table heart refuse trim ozone essay grit purchase hover"
+
+      assert Mnemonic.entropy_from_phrase(mnemonic) ==
+               "dced4ad1f459e89a59ad716e"
+    end
+
     test "it returns an error if checksum is not correct" do
       mnemonic =
         "safe result wire cattle sauce luggage couple legend pause rather employ pear trigger live daring unlock music lyrics smoke mistake endorse kite obey able"
@@ -108,6 +122,24 @@ defmodule MnemonicTest do
 
       assert seed ==
                "a55601e89ec1296be238d8525b7dcc1e0a9a7740d365c9b8592264aa87b6f6335388f42cac49ebbd743a93adcd43c2d7fb7eb43de1963a9e325cbd938ba737f1"
+    end
+
+    test "it generates seed given a 6 word mnemonic" do
+      mnemonic = "humble shallow omit conduct wonder armed"
+
+      seed = Mnemonic.generate_seed(mnemonic)
+
+      assert seed ==
+               "34c26a6eab060af41ae6b2f300ab1a79c52fedbb4d69f82bc81772664796ed88c3899ec58b7bc8c929926e02fb99250624c2b56908f00c9585ed493334cf0c2f"
+    end
+
+    test "it generates seed given a 9 word mnemonic" do
+      mnemonic = "census across motion horn gain siren battle pair taxi"
+
+      seed = Mnemonic.generate_seed(mnemonic)
+
+      assert seed ==
+               "10baf276e94b01b9bf71501cd5af9e3b1dcbbd66ee458f6beaf761354519753c6a1a30e53b976a2fa2986a64130ce0f2ca5a25f7b15b5518eb691cde3f450f40"
     end
 
     test "it returns an error given a 24 word mnemonic with incorrect checksum" do
