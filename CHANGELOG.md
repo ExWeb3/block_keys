@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.7
+
+  * Enables checksums for all phrase sizes: 3, 6, 9, 12, 15, 18, 21 and 24
+  * More test coverage for all phrase sizes for seeds and entropy
+
 ## v0.1.6
 
   * Fixes checksum verification for phrases less than 24 words.

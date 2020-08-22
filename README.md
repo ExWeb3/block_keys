@@ -14,7 +14,7 @@ Add the dependency to your `mix.exs`:
 ```
 def deps do
   [
-    {:block_keys, "~> 0.1.6"}
+    {:block_keys, "~> 0.1.7"}
   ]
 end
 ```
@@ -59,6 +59,11 @@ the attacker now has the ability to check the balances for all your accounts but
 Using the Master Public Key you can also setup a watch-only wallet in order to reconcile the payments you receive. 
 
 # How to use this
+
+## Mnemonic Lenghts
+
+This library supports a wide range of mnemonic sizes: from 3 words to 24 words. **Please note that anything less than 12 word mnemonics are not
+recommended for generating blockchain wallets.**
 
 ## Import Ledger Nano mnemonic
 
