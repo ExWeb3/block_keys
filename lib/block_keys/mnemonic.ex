@@ -40,14 +40,12 @@ defmodule BlockKeys.Mnemonic do
 
   ## Examples
 
-      iex> BlockKeys.Bip32Mnemonic.entropy_from_phrase("baby shadow city tower diamond magnet avocado champion crash...")
-      <<81, 207, 16, 37, 21, 79, 241, 161, 228, 226, 129, 30, 238, 242, 43, 248, 23,
-      150, 111, 135, 12, 220, 228, 66, 200, 175, 200, 11, 201, 238, 18, 145>>
-
+      iex> BlockKeys.Mnemonic.entropy_from_phrase("safe result wire cattle sauce luggage couple legend pause rather employ pear trigger live daring unlock music lyrics smoke mistake endorse kite obey siren"")
+      be16fbf0922bf9098c4bfca1764923d10e89054de77091f0af3346f49cf665fe 
   """
   def entropy_from_phrase(phrase) do
     phrase
-    |> phrase_to_binary()
+    |> phrase_to_bitstring()
     |> verify_checksum()
     |> maybe_return_entropy()
   end
@@ -56,15 +54,21 @@ defmodule BlockKeys.Mnemonic do
   Given a binary of entropy it will generate teh hex encoded seed
 
   ## Examples
-      iex> BlockKeys.Bip32Mnemonic.generate_seed("weather neither click twin monster night bridge door immense tornado crack model canal answer harbor weasel winter fan universe burden price quote tail ride"
+      iex> BlockKeys.Mnemonic.generate_seed("weather neither click twin monster night bridge door immense tornado crack model canal answer harbor weasel winter fan universe burden price quote tail ride"
       "af7f48a70d0ecedc77df984117e336e12f0f0e681a4c95b25f4f17516d7dc4cca456e3a400bd1c6a5a604af67eb58dc6e0eb46fd520ad99ef27855d119dca517"
 
   """
   def generate_seed(mnemonic, password \\ "") do
     mnemonic
-    |> phrase_to_binary()
+    |> phrase_to_bitstring()
     |> verify_checksum()
     |> pbkdf2_key_stretching(mnemonic, password)
+  end
+
+  defp binary_to_bitstring(binary) do
+    :binary.bin_to_list(binary)
+    |> Enum.map(fn byte -> to_bitstring(byte, @pad_length_mnemonic) end)
+    |> Enum.join()
   end
 
   defp pbkdf2_key_stretching({:error, message}, _, _), do: {:error, message}
@@ -77,16 +81,15 @@ defmodule BlockKeys.Mnemonic do
     |> Base.encode16(case: :lower)
   end
 
-  defp phrase_to_binary(phrase) do
+  defp phrase_to_bitstring(phrase) do
     phrase
     |> phrase_to_list
     |> word_indexes(words())
     |> Enum.map(fn index -> to_bitstring(index, @pad_length_phrase) end)
     |> Enum.join()
-    |> bitstring_to_binary()
   end
 
-  defp maybe_return_entropy({:ok, entropy}), do: entropy
+  defp maybe_return_entropy({:ok, entropy}), do: Base.encode16(entropy, case: :lower)
   defp maybe_return_entropy({:error, message}), do: {:error, message}
 
   defp iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
@@ -148,10 +151,34 @@ defmodule BlockKeys.Mnemonic do
     |> :binary.list_to_bin()
   end
 
-  defp verify_checksum(<<entropy::binary-32, checksum::binary-1>>) do
-    <<calculated_checksum::binary-1, _rest::binary>> = Crypto.sha256(entropy)
+  defp verify_checksum(ent_bitstring) do
+    ent_binary = bitstring_to_binary(ent_bitstring)
 
-    if calculated_checksum == checksum do
+    {calculated_cs, cs, entropy} =
+      case byte_size(ent_binary) do
+        33 ->
+          <<entropy::binary-32, cs::binary-1>> = ent_binary
+          <<calculated_cs::binary-1, _rest::binary>> = Crypto.sha256(entropy)
+          {calculated_cs, cs, entropy}
+
+        16 ->
+          cs = String.slice(ent_bitstring, -4, String.length(ent_bitstring))
+          ent = String.slice(ent_bitstring, 0, String.length(ent_bitstring) - 4)
+
+          entropy_hash =
+            ent_bitstring
+            |> bitstring_to_binary()
+            |> Crypto.sha256()
+
+          entropy_bitstring_hash = binary_to_bitstring(entropy_hash)
+          calculated_cs = String.slice(entropy_bitstring_hash, 0, 4)
+          {calculated_cs, cs, bitstring_to_binary(ent)}
+
+        _ ->
+          {:ok, :ok, ent_binary}
+      end
+
+    if calculated_cs == cs do
       {:ok, entropy}
     else
       {:error, "Checksum is not valid"}
