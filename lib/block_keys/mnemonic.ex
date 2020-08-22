@@ -164,21 +164,8 @@ defmodule BlockKeys.Mnemonic do
             <<calculated_cs::binary-1, _rest::binary>> = Crypto.sha256(entropy)
             {calculated_cs, cs, entropy}
 
-          16 ->
-            cs = String.slice(ent_bitstring, -4, String.length(ent_bitstring))
-            ent = String.slice(ent_bitstring, 0, String.length(ent_bitstring) - 4)
-
-            entropy_hash =
-              ent_bitstring
-              |> bitstring_to_binary()
-              |> Crypto.sha256()
-
-            entropy_bitstring_hash = binary_to_bitstring(entropy_hash)
-            calculated_cs = String.slice(entropy_bitstring_hash, 0, 4)
-            {calculated_cs, cs, bitstring_to_binary(ent)}
-
-          _ ->
-            {:ok, :ok, ent_binary}
+          size ->
+            extract_and_compare_checksum(ent_bitstring, div(size, 4))
         end
 
       if calculated_cs == cs do
@@ -189,6 +176,20 @@ defmodule BlockKeys.Mnemonic do
     else
       {:error, "Invalid mnemonic"}
     end
+  end
+
+  defp extract_and_compare_checksum(ent_bitstring, cs_length) do
+    cs = String.slice(ent_bitstring, -cs_length, String.length(ent_bitstring))
+    ent = String.slice(ent_bitstring, 0, String.length(ent_bitstring) - cs_length)
+
+    entropy_hash =
+      ent_bitstring
+      |> bitstring_to_binary()
+      |> Crypto.sha256()
+
+    entropy_bitstring_hash = binary_to_bitstring(entropy_hash)
+    calculated_cs = String.slice(entropy_bitstring_hash, 0, cs_length)
+    {calculated_cs, cs, bitstring_to_binary(ent)}
   end
 
   defp(phrase_to_list(phrase)) do
