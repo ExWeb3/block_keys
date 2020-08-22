@@ -14,7 +14,7 @@ Add the dependency to your `mix.exs`:
 ```
 def deps do
   [
-    {:block_keys, "~> 0.1.5"}
+    {:block_keys, "~> 0.1.6"}
   ]
 end
 ```
