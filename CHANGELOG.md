@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.6
+
+  * Fixes checksum verification for phrases less than 24 words.
+  * Adds more tests for phrases of 3 and 12 words.
+
 ## v0.1.5
 
   * Using `keccakf1600_otp23` patched hex package for OTP23 compatibility
