@@ -31,9 +31,7 @@ defmodule BlockKeys.Mnemonic do
     |> entropy_hash()
     |> extract_checksum()
     |> append_checksum()
-    |> :binary.bin_to_list()
-    |> Enum.map(fn byte -> to_bitstring(byte, @pad_length_mnemonic) end)
-    |> Enum.join()
+    |> binary_to_bitstring()
     |> mnemonic()
   end
 
@@ -192,7 +190,7 @@ defmodule BlockKeys.Mnemonic do
     {calculated_cs, cs, bitstring_to_binary(ent)}
   end
 
-  defp(phrase_to_list(phrase)) do
+  defp phrase_to_list(phrase) do
     phrase
     |> String.split()
     |> Enum.map(&String.trim/1)
