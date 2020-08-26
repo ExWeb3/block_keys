@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.8
+
+  * Minor refactor and fix for a function formatting
+
 ## v0.1.7
 
   * Enables checksums for all phrase sizes: 3, 6, 9, 12, 15, 18, 21 and 24
