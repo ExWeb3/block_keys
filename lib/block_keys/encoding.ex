@@ -53,16 +53,14 @@ defmodule BlockKeys.Encoding do
     |> base58_encode
   end
 
-  def encode_public(
-        %{
-          derived_key: derived_key,
-          child_chain: child_chain,
-          fingerprint: fingerprint,
-          index: index,
-          depth: depth,
-          version_number: version_number
-        }) do
-
+  def encode_public(%{
+        derived_key: derived_key,
+        child_chain: child_chain,
+        fingerprint: fingerprint,
+        index: index,
+        depth: depth,
+        version_number: version_number
+      }) do
     encode_extended_key(
       version_number,
       depth,

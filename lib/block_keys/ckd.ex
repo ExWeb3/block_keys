@@ -199,7 +199,10 @@ defmodule BlockKeys.CKD do
     <<0::size(bits)>> <> content
   end
 
-  defp slice_prefix(%{key: <<_prefix::binary-1, parent_priv_key::binary>>, version_number: version_number} = decoded_key) do
+  defp slice_prefix(
+         %{key: <<_prefix::binary-1, parent_priv_key::binary>>, version_number: version_number} =
+           decoded_key
+       ) do
     %{parent_priv_key: parent_priv_key}
     |> Map.merge(%{decoded_key: decoded_key, version_number: version_number})
   end
