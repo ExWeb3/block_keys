@@ -7,12 +7,6 @@ defmodule BlockKeys.CKD do
 
   @mersenne_prime 2_147_483_647
   @order 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-  @version %{
-    mainnet_private: <<4, 136, 173, 228>>,
-    mainnet_public: <<4, 136, 178, 30>>,
-    testnet_private: <<4, 53, 131, 148>>,
-    testnet_public: <<4, 53, 135, 207>>
-  }
 
   @doc """
   Returns a Base58 encode check child extended key given an extended key and a path
@@ -107,15 +101,7 @@ defmodule BlockKeys.CKD do
   end
 
   def master_private_key({extended_key, chain_code}, network \\ :mainnet) do
-    version_number =
-      case network do
-        :mainnet ->
-          @version.mainnet_private
-
-        :testnet ->
-          @version.testnet_private
-      end
-
+    version_number = Encoding.private_version_number(network)
     depth = <<0>>
     fingerprint = <<0::32>>
     index = <<0::32>>
@@ -148,7 +134,7 @@ defmodule BlockKeys.CKD do
       |> put_compressed_parent_pub()
 
     Encoding.encode_extended_key(
-      get_public_version_number(network),
+      Encoding.public_version_number(network),
       decoded_key.depth,
       decoded_key.fingerprint,
       decoded_key.index,
@@ -218,13 +204,17 @@ defmodule BlockKeys.CKD do
     |> Map.merge(%{parent_pub_key: compress_key(key)})
   end
 
-  defp check_path(%{index: index, decoded_key: %{version_number: version}})
-       when version in [unquote(@version.mainnet_public), unquote(@version.mainnet_private)] and
-              index > @mersenne_prime do
-    {:error, "Cannot do hardened derivation from public key"}
+  defp check_path(%{index: index, decoded_key: %{version_number: version}} = data) do
+    if version in [
+         Encoding.public_version_number(:mainnet),
+         Encoding.public_version_number(:testnet)
+       ] and
+         index > @mersenne_prime do
+      {:error, "Cannot do hardened derivation from public key"}
+    else
+      data
+    end
   end
-
-  defp check_path(data), do: data
 
   defp put_fingerprint(%{parent_pub_key: key} = data) do
     <<fingerprint::binary-4, _rest::binary>> = Crypto.hash160(key)
@@ -281,7 +271,4 @@ defmodule BlockKeys.CKD do
 
   defp compress_key(<<0x04::8, x::256, y::256>>) when rem(y, 2) === 0, do: <<0x02::8, x::256>>
   defp compress_key(<<0x04::8, x::256, _rest::256>>), do: <<0x03::8, x::256>>
-
-  defp get_public_version_number(:mainnet), do: @version.mainnet_public
-  defp get_public_version_number(:testnet), do: @version.testnet_public
 end

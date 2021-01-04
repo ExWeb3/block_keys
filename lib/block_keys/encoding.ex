@@ -91,15 +91,17 @@ defmodule BlockKeys.Encoding do
     )
   end
 
-  defp prefix_private_key(key, version) when version == unquote(@version.mainnet_private) do
-    <<0>> <> key
-  end
+  def public_version_number(:mainnet), do: @version.mainnet_public
+  def public_version_number(:testnet), do: @version.testnet_public
 
-  defp prefix_private_key(key, version) when version == unquote(@version.testnet_private) do
-    <<0>> <> key
-  end
+  def private_version_number(:mainnet), do: @version.mainnet_private
+  def private_version_number(:testnet), do: @version.testnet_private
 
-  defp prefix_private_key(key, _version) do
-    key
+  defp prefix_private_key(key, version) do
+    if version == private_version_number(:mainnet) or version == private_version_number(:testnet) do
+      <<0>> <> key
+    else
+      key
+    end
   end
 end
