@@ -90,6 +90,26 @@ defmodule CKDTest do
       assert master_private_key ==
                "xprv9s21ZrQH143K4J2iCFaJiNoe4UPet96xD6gaVjB5NX3RtpFvKzEpZsKivwLgpPnZ8AiXy1dGoRuH1vp7jgt9KhT2hA2c8qcQX5hnKi36993"
     end
+
+    test "returns proper seed and master private key for mainnet and testnet" do
+      mnemonic =
+        "roof frost neutral divide pool item north novel swim undo true blur just goddess myself orient correct zebra clarify shuffle child faculty artefact achieve"
+
+      seed = Mnemonic.generate_seed(mnemonic)
+
+      assert seed ==
+               "26f53f7dd6f98ac389aa77da10b796d9464b263a93ca1aadf1923f55e74bff28a69b07bb5eff1d37db8a823ec7e29f6697e7b1ad21febac0f8adb4f2807b4691"
+
+      mainnet_private_key = CKD.master_keys(seed) |> CKD.master_private_key(:mainnet)
+
+      assert mainnet_private_key ==
+               "xprv9s21ZrQH143K2g6KiEEp5wBk56AwvztNib5kywYz1zxedRZfsmJqS1BU8xoq769ogFjTitLt4MG3QvRR8vgQnKNzvNx9WD9jK4irkaqB7Na"
+
+      testnet_private_key = CKD.master_keys(seed) |> CKD.master_private_key(:testnet)
+
+      assert testnet_private_key ==
+               "tprv8ZgxMBicQKsPdVKrNo6KFaojPDbAAWvP48zsrMySVyT8R2Jks8eawkYv48yV7TY83hGEiyxeDhqqsmyAG92MbNebT2ATAZsnEAUHCBLpvrA"
+    end
   end
 
   describe "master_public_key/1" do
@@ -107,6 +127,24 @@ defmodule CKDTest do
 
       assert master_public_key ==
                "xpub661MyMwAqRbcGn7BJH7K5WkNcWE9HbpoaKcBJ7agvraQmcb4sXZ57feCnEvDKV37gSV9baYsKvUuRYyD4RKrXt7ciDyKAhLQTbmq5ocYXWZ"
+    end
+
+    test "returns proper public key for mainnet and testnet" do
+      mainnet_private_key =
+        "xprv9tyUQV64JT5qs3RSTJkXCWKMyUgoQp7F3hA1xzG6ZGu6u6Q9VMNjGr67Lctvy5P8oyaYAL9CAWrUE9i6GoNMKUga5biW6Hx4tws2six3b9c"
+
+      mainnet_public_key = CKD.master_public_key(mainnet_private_key)
+
+      assert mainnet_public_key ==
+               "xpub67xpozcx8pe95XVuZLHXZeG6XWXHpGq6Qv5cmNfi7cS5mtjJ2tgypeQbBs2UAR6KECeeMVKZBPLrtJunSDMstweyLXhRgPxdp14sk9tJPW9"
+
+      testnet_private_key =
+        "tprv8ZgxMBicQKsPdmnHBwtQtqiqL6PYEVehtGeXA53UoJEaaLpbhYgn7JEzHhuXusKgYiNyZnC71oS5D7s1CDVmsMpoRxfM5e3TZfG9LAbmyuc"
+
+      testnet_public_key = CKD.master_public_key(testnet_private_key)
+
+      assert testnet_public_key ==
+               "tpubD6NzVbkrYhZ4XEp55bZ1JFNwu7uUPpqcTaFJSb5nDa2yQq5NKwWNHnrrTrGkK1HxcfswjNaMY1fYx23rohEt6PwKqX8HAeFHTb8oYhXsaYi"
     end
   end
 
