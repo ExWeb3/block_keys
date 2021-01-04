@@ -26,14 +26,14 @@ defmodule BlockKeys.CKD do
     path
     |> String.split("/")
     |> _derive(extended_key)
-    |> master_public_key(:mainnet)
+    |> master_public_key()
   end
 
   def derive(<<"tprv", _rest::binary>> = extended_key, <<"M/", path::binary>>) do
     path
     |> String.split("/")
     |> _derive(extended_key)
-    |> master_public_key(:testnet)
+    |> master_public_key()
   end
 
   def derive(extended_key, path) do
@@ -116,15 +116,13 @@ defmodule BlockKeys.CKD do
     )
   end
 
-  def master_public_key(key, network \\ :mainnet)
-
-  def master_public_key(<<"xpub", _rest::binary>>, _network),
+  def master_public_key(<<"xpub", _rest::binary>>),
     do: {:error, "Cannot derive master public key from another extended public key"}
 
-  def master_public_key(<<"tpub", _rest::binary>>, _network),
+  def master_public_key(<<"tpub", _rest::binary>>),
     do: {:error, "Cannot derive master public key from another extended public key"}
 
-  def master_public_key(key, network) do
+  def master_public_key(key) do
     decoded_key = Encoding.decode_extended_key(key)
 
     data =
@@ -132,6 +130,12 @@ defmodule BlockKeys.CKD do
       |> slice_prefix()
       |> put_uncompressed_parent_pub(%{index: decoded_key.index})
       |> put_compressed_parent_pub()
+
+    network =
+      case key do
+        "xprv" <> _ -> :mainnet
+        "tprv" <> _ -> :testnet
+      end
 
     Encoding.encode_extended_key(
       Encoding.public_version_number(network),
