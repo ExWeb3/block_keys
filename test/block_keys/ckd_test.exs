@@ -16,6 +16,20 @@ defmodule CKDTest do
                "xprv9y3jSNj99vGEj1FGiDETNSpMAf6K1EJkBXTmqASb6RP5BhiaFqPsfVoWKDAPG4kpGVmxannsEpWh3jLeahq9KoFgPHjwjNDcb3GbqcLCbvZ"
     end
 
+    test "derives extended private keys from testnet parent extended private key" do
+      path1 = "m/44'/1'/0'"
+      path2 = "m/44'/1'/1'"
+
+      tprv =
+        "tprv8ZgxMBicQKsPeCsnrw1DC5P5aAX4Mmfwem2MyRhZwmHemUh6119jfKk5wncqtM32JgqNRNkyUDbr1TKkAmehbhSC9uo6sxMfVnMyBeSjFGc"
+
+      assert CKD.derive(tprv, path1) ==
+               "tprv8gAXpcDaWPihJ3YE33cc5Mtpx7pLTkMzLCFiNXdduEJEVEt3ndCZ7MtPuqfbRs1mV4x2AxtfHGv4NdMvQZXVAsZGE869675CqrABLzbmCEy"
+
+      assert CKD.derive(tprv, path2) ==
+               "tprv8gAXpcDaWPihJDE4WjMHJsYasDSSnWiPBGrmiWNtjcUHEiapPaDUCU4JDG7YG3PiU5y8LwPQeToXKdkBLGgmLSGsUFrtAeLm2rzBniibRqy"
+    end
+
     test "does not derive an extended private key from an extended public key" do
       path = "m/44'/0'/0'"
 
@@ -42,6 +56,16 @@ defmodule CKDTest do
 
       assert CKD.derive(xprv, path) ==
                "xpub6C35qtG2zHpXwVKjpEmTjam5igvoQh2bYkPNdYrCekv44W3ioNi8DJ7zAXTuWgYCbm57ZZRhgiwC56dCYvzfur7pxwKQhcgqga7fafdeH4q"
+    end
+
+    test "derives tpub from master using BIP44 path" do
+      path = "M/44'/1'/0'"
+
+      tprv =
+        "tprv8ZgxMBicQKsPeqFAcJmHB4cKUSZWWY486KushgCoAfJLSTFuiRR7qSarrxA1iTsQmqGVsivNhpQX4xywgUVijXjNEo2uLz24h2obwLi8AQ2"
+
+      assert CKD.derive(tprv, path) ==
+               "tpubDCzSbJ1ENPHFExh8J7DubRgiVcme9JJooA64kkCimb5ndWcppfVkSacvCq3bKhVwT3BYcGc5ogL8nXtCMVbEoU2LNxi4Rp5bGFgYLWaBSsN"
     end
 
     test "derivation from hardened path" do
