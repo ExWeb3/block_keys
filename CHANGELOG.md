@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.9
+
+  * Adds support for Bitcoin testnet keys
+
 ## v0.1.8
 
   * Minor refactor and fix for a function formatting
@@ -32,4 +36,4 @@
 
 ## v0.1.0
 
-Initial release.
+  * Initial release.
