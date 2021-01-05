@@ -7,8 +7,6 @@ defmodule BlockKeys.CKD do
 
   @mersenne_prime 2_147_483_647
   @order 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-  @private_version_number <<4, 136, 173, 228>>
-  @public_version_number <<4, 136, 178, 30>>
 
   @doc """
   Returns a Base58 encode check child extended key given an extended key and a path
@@ -21,7 +19,17 @@ defmodule BlockKeys.CKD do
   def derive(<<"xpub", _rest::binary>>, <<"m/", _path::binary>>),
     do: {:error, "Cannot derive private key from public key"}
 
+  def derive(<<"tpub", _rest::binary>>, <<"m/", _path::binary>>),
+    do: {:error, "Cannot derive private key from public key"}
+
   def derive(<<"xprv", _rest::binary>> = extended_key, <<"M/", path::binary>>) do
+    path
+    |> String.split("/")
+    |> _derive(extended_key)
+    |> master_public_key()
+  end
+
+  def derive(<<"tprv", _rest::binary>> = extended_key, <<"M/", path::binary>>) do
     path
     |> String.split("/")
     |> _derive(extended_key)
@@ -52,6 +60,8 @@ defmodule BlockKeys.CKD do
   def child_key({:error, _} = error, _), do: error
   def child_key(<<"xpub", _rest::binary>> = key, index), do: child_key_public(key, index)
   def child_key(<<"xprv", _rest::binary>> = key, index), do: child_key_private(key, index)
+  def child_key(<<"tpub", _rest::binary>> = key, index), do: child_key_public(key, index)
+  def child_key(<<"tprv", _rest::binary>> = key, index), do: child_key_private(key, index)
 
   def child_key_public(key, child_index) do
     key
@@ -90,8 +100,8 @@ defmodule BlockKeys.CKD do
     {private_key, chain_code}
   end
 
-  def master_private_key({extended_key, chain_code}) do
-    version_number = @private_version_number
+  def master_private_key({extended_key, chain_code}, network \\ :mainnet) do
+    version_number = Encoding.private_version_number(network)
     depth = <<0>>
     fingerprint = <<0::32>>
     index = <<0::32>>
@@ -109,6 +119,9 @@ defmodule BlockKeys.CKD do
   def master_public_key(<<"xpub", _rest::binary>>),
     do: {:error, "Cannot derive master public key from another extended public key"}
 
+  def master_public_key(<<"tpub", _rest::binary>>),
+    do: {:error, "Cannot derive master public key from another extended public key"}
+
   def master_public_key(key) do
     decoded_key = Encoding.decode_extended_key(key)
 
@@ -118,8 +131,14 @@ defmodule BlockKeys.CKD do
       |> put_uncompressed_parent_pub(%{index: decoded_key.index})
       |> put_compressed_parent_pub()
 
+    network =
+      case key do
+        "xprv" <> _ -> :mainnet
+        "tprv" <> _ -> :testnet
+      end
+
     Encoding.encode_extended_key(
-      @public_version_number,
+      Encoding.public_version_number(network),
       decoded_key.depth,
       decoded_key.fingerprint,
       decoded_key.index,
@@ -136,8 +155,8 @@ defmodule BlockKeys.CKD do
     |> Kernel.+(@mersenne_prime)
   end
 
-  defp put_decoded_key(decoded_key) do
-    %{decoded_key: decoded_key}
+  defp put_decoded_key(%{version_number: version_number} = decoded_key) do
+    %{decoded_key: decoded_key, version_number: version_number}
   end
 
   defp put_private_or_public_key(%{index: index, parent_priv_key: priv_key} = data)
@@ -170,9 +189,12 @@ defmodule BlockKeys.CKD do
     <<0::size(bits)>> <> content
   end
 
-  defp slice_prefix(%{key: <<_prefix::binary-1, parent_priv_key::binary>>} = decoded_key) do
+  defp slice_prefix(
+         %{key: <<_prefix::binary-1, parent_priv_key::binary>>, version_number: version_number} =
+           decoded_key
+       ) do
     %{parent_priv_key: parent_priv_key}
-    |> Map.merge(%{decoded_key: decoded_key})
+    |> Map.merge(%{decoded_key: decoded_key, version_number: version_number})
   end
 
   defp put_uncompressed_parent_pub(%{parent_priv_key: parent_priv_key} = data, index) do
@@ -186,12 +208,17 @@ defmodule BlockKeys.CKD do
     |> Map.merge(%{parent_pub_key: compress_key(key)})
   end
 
-  defp check_path(%{index: index, decoded_key: %{version_number: @public_version_number}})
-       when index > @mersenne_prime do
-    {:error, "Cannot do hardened derivation from public key"}
+  defp check_path(%{index: index, decoded_key: %{version_number: version}} = data) do
+    if version in [
+         Encoding.public_version_number(:mainnet),
+         Encoding.public_version_number(:testnet)
+       ] and
+         index > @mersenne_prime do
+      {:error, "Cannot do hardened derivation from public key"}
+    else
+      data
+    end
   end
-
-  defp check_path(data), do: data
 
   defp put_fingerprint(%{parent_pub_key: key} = data) do
     <<fingerprint::binary-4, _rest::binary>> = Crypto.hash160(key)

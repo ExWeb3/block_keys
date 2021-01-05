@@ -5,9 +5,10 @@ defmodule BlockKeys.Base58.Check do
 
   def encode_check(data, prefix) when is_binary(data) and is_binary(prefix) do
     data
-    |> maybe_decode_hex() 
+    |> maybe_decode_hex()
     |> encode(prefix)
   end
+
   def encode_check(data, prefix) do
     prefix = encode_unsigned(prefix)
     data = encode_unsigned(data)
@@ -21,7 +22,7 @@ defmodule BlockKeys.Base58.Check do
   defp maybe_decode_hex(data) do
     case Base.decode16(String.upcase(data)) do
       {:ok, bin} -> bin
-      :error     -> data
+      :error -> data
     end
   end
 
@@ -48,14 +49,15 @@ defmodule BlockKeys.Base58.Check do
     payload_size = length - 5
 
     if size < checksum_size do
-      raise ArgumentError, "address of size #{size} is too short, expected at least #{checksum_size}"
+      raise ArgumentError,
+            "address of size #{size} is too short, expected at least #{checksum_size}"
     end
+
     if size > length do
       raise ArgumentError, "address of size #{size} is too long, expected #{length}"
     end
 
-
-    padding = 
+    padding =
       if size < length do
         for _ <- 1..(length - size), into: <<>>, do: <<0>>
       else
@@ -72,7 +74,7 @@ defmodule BlockKeys.Base58.Check do
 
     case valid_checksum?(generated_checksum, checksum) do
       false -> raise ArgumentError, "Checksum is not valid!"
-      true  -> {prefix, payload}
+      true -> {prefix, payload}
     end
   end
 

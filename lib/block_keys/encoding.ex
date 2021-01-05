@@ -3,8 +3,12 @@ defmodule BlockKeys.Encoding do
   This module contains Base58check encoding and decoding functions for extended keys
   """
 
-  @private_version_number <<4, 136, 173, 228>>
-  @public_version_number <<4, 136, 178, 30>>
+  @version %{
+    mainnet_private: <<4, 136, 173, 228>>,
+    mainnet_public: <<4, 136, 178, 30>>,
+    testnet_private: <<4, 53, 131, 148>>,
+    testnet_public: <<4, 53, 135, 207>>
+  }
 
   alias BlockKeys.Base58
 
@@ -38,14 +42,7 @@ defmodule BlockKeys.Encoding do
   end
 
   def encode_extended_key(version_number, depth, fingerprint, index, chain_code, key) do
-    key =
-      case version_number do
-        @private_version_number() ->
-          <<0>> <> key
-
-        @public_version_number() ->
-          key
-      end
+    key = prefix_private_key(key, version_number)
 
     version_number
     |> Kernel.<>(depth)
@@ -61,10 +58,11 @@ defmodule BlockKeys.Encoding do
         child_chain: child_chain,
         fingerprint: fingerprint,
         index: index,
-        depth: depth
+        depth: depth,
+        version_number: version_number
       }) do
     encode_extended_key(
-      @public_version_number,
+      version_number,
       depth,
       fingerprint,
       <<index::32>>,
@@ -80,15 +78,30 @@ defmodule BlockKeys.Encoding do
         child_chain: child_chain,
         fingerprint: fingerprint,
         index: index,
-        depth: depth
+        depth: depth,
+        version_number: version_number
       }) do
     encode_extended_key(
-      @private_version_number,
+      version_number,
       depth,
       fingerprint,
       <<index::32>>,
       child_chain,
       derived_key
     )
+  end
+
+  def public_version_number(:mainnet), do: @version.mainnet_public
+  def public_version_number(:testnet), do: @version.testnet_public
+
+  def private_version_number(:mainnet), do: @version.mainnet_private
+  def private_version_number(:testnet), do: @version.testnet_private
+
+  defp prefix_private_key(key, version) do
+    if version == private_version_number(:mainnet) or version == private_version_number(:testnet) do
+      <<0>> <> key
+    else
+      key
+    end
   end
 end
