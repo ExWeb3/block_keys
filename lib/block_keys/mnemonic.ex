@@ -75,7 +75,7 @@ defmodule BlockKeys.Mnemonic do
 
   defp pbkdf2_key_stretching({:ok, _binary_mnemonic}, mnemonic, password) do
     salt = <<salt(password)::binary, @pbkdf2_initial_round::integer-32>>
-    initial_round = :crypto.hmac(:sha512, mnemonic, salt)
+    initial_round = :crypto.mac(:hmac, :sha512, mnemonic, salt)
 
     iterate(mnemonic, @pbkdf2_initial_round + 1, initial_round, initial_round)
     |> Base.encode16(case: :lower)
@@ -95,7 +95,7 @@ defmodule BlockKeys.Mnemonic do
   defp iterate(_entropy, round, _previous, result) when round > @pbkdf2_rounds, do: result
 
   defp iterate(entropy, round, previous, result) do
-    next = :crypto.hmac(:sha512, entropy, previous)
+    next = :crypto.mac(:hmac, :sha512, entropy, previous)
     iterate(entropy, round + 1, next, :crypto.exor(next, result))
   end
 
