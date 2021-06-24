@@ -1,6 +1,6 @@
 # BlockKeys
 
-[![Build Status](https://travis-ci.org/AgileAlpha/block_keys.svg?branch=master)](https://travis-ci.org/AgileAlpha/block_keys)
+[![Build Status](https://travis-ci.com/AgileAlpha/block_keys.svg?branch=master)](https://travis-ci.com/AgileAlpha/block_keys)
 
 BlockKeys is an Elixir implementation of BIP44 Multi-Account Hierarchy for Deterministic Wallets.
 Currently it supports Bitcoin and Ethereum but will be extended to support a [large number of coin types](https://github.com/satoshilabs/slips/blob/master/slip-0044.md) of coins in the future.
@@ -14,7 +14,7 @@ Add the dependency to your `mix.exs`:
 ```
 def deps do
   [
-    {:block_keys, "~> 0.1.7"}
+    {:block_keys, "~> 0.1.10"}
   ]
 end
 ```
@@ -24,7 +24,7 @@ end
 By default, this package depends on the [ExThereum's fork of libsecp256k1 C Nif](https://github.com/exthereum/libsecp256k1).
 
 If you prefer, you can either roll your own Crypto module or use another experimental and probably incomplete Rust based Nif
-based on [Parity's pure Rust implementation](https://crates.io/crates/libsecp256k1). 
+based on [Parity's pure Rust implementation](https://crates.io/crates/libsecp256k1).
 
 Add this additional dependency to your `mix.exs`:
 
@@ -44,19 +44,19 @@ And configure the package to use it in your `config.exs` or the appropriate env 
 config :block_keys, :ec_module, RustySecp256k1
 ```
 
-Note that you will need to have Rust installed and configured in order to build the `rusty_secp256k1` dependency. 
+Note that you will need to have Rust installed and configured in order to build the `rusty_secp256k1` dependency.
 
 ## What is this good for ?
 
 The purpose of HD wallets is to increase anonymity by generating different addresses each time you transact. For Bitcoin this means generating
-new addresses when you receive funds but also generating unique change addresses (this would prevent someone from knowing how much bitcoin you 
+new addresses when you receive funds but also generating unique change addresses (this would prevent someone from knowing how much bitcoin you
 sent in a transactions because the to address and change address will both not be tied to your sending address). This is pseudo-anonymity because
 there are other ways of clustering transactions in order to de-anonymize your transactions.
 
-The second use case for this library is to allow online stores or exchanges to receive crypto currency payments without using a hot wallet. 
+The second use case for this library is to allow online stores or exchanges to receive crypto currency payments without using a hot wallet.
 You only need a Master Public Key deployed on your server in order to generate addresses. In case of a security breach the only danger is
 the attacker now has the ability to check the balances for all your accounts but not steal any coins (really just a privacy issue here).
-Using the Master Public Key you can also setup a watch-only wallet in order to reconcile the payments you receive. 
+Using the Master Public Key you can also setup a watch-only wallet in order to reconcile the payments you receive.
 
 # How to use this
 
@@ -73,7 +73,7 @@ input that in this library make sure you audit the code to make sure everything 
 ```
 root_key = BlockKeys.from_mnemonic("nurse grid sister metal flock choice system control about mountain sister rapid hundred render shed chicken print cover tape sister zero bronze tattoo stairs")
 "xprv9s21ZrQH143K35qGjQ6GG1wGHFZP7uCZA1WBdUJA8vBZqESQXQGA4A9d4eve5JqWB5m8YTMcNe8cc7c3FVzDGNcmiabi9WQycbFeEvvJF2D"
-``` 
+```
 
 ### Ethereum Addresses
 
@@ -97,7 +97,7 @@ You can now use this key to generate addresses on a live server that will be in 
 ```
 BlockKeys.Derivation.CKD.derive(master_public_key, "M/0/0") |> BlockKeys.Ethereum.Address.from_xpub
 "0x73bb50c828fd325c011d740fde78d02528826156"
-``` 
+```
 
 We have to use a non hardened path here because we're feeding a public key (hardened paths require a private key for concatenation in the child key derivation function). Note how the address at M/0/0 is the same as our initial M/44'/60'/0'/0/0.
 
