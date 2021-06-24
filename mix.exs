@@ -4,7 +4,7 @@ defmodule BlockKeys.MixProject do
   def project do
     [
       app: :block_keys,
-      version: "0.1.9",
+      version: "0.1.10",
       elixir: "~> 1.7",
       description: description(),
       start_permanent: Mix.env() == :prod,

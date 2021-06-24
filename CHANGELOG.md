@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.10
+
+  * Adds support for OTP 24
+
 ## v0.1.9
 
   * Adds support for Bitcoin testnet keys
@@ -23,7 +27,7 @@
   * Using `keccakf1600_otp23` patched hex package for OTP23 compatibility
 
 ## v0.1.3
-  
+
   * Allows a non 32-byte entropy as an optional parameter
 
 ## v0.1.2
