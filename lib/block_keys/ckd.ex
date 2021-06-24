@@ -95,7 +95,7 @@ defmodule BlockKeys.CKD do
       |> Base.decode16!(case: :lower)
 
     <<private_key::binary-32, chain_code::binary-32>> =
-      :crypto.hmac(:sha512, "Bitcoin seed", decoded_seed)
+      :crypto.mac(:hmac, :sha512, "Bitcoin seed", decoded_seed)
 
     {private_key, chain_code}
   end
@@ -250,7 +250,7 @@ defmodule BlockKeys.CKD do
          %{decoded_key: %{chain_code: chain_code, key: key}, index: index} = data
        ) do
     <<derived_key::binary-32, child_chain::binary-32>> =
-      :crypto.hmac(:sha512, chain_code, key <> <<index::32>>)
+      :crypto.mac(:hmac, :sha512, chain_code, key <> <<index::32>>)
 
     data
     |> Map.merge(%{child_chain: child_chain, derived_key: derived_key})
@@ -260,7 +260,7 @@ defmodule BlockKeys.CKD do
          %{decoded_key: %{chain_code: chain_code}, index: index, derived_key: derived_key} = data
        ) do
     <<derived_key::256, child_chain::binary>> =
-      :crypto.hmac(:sha512, chain_code, derived_key <> <<index::32>>)
+      :crypto.mac(:hmac, :sha512, chain_code, derived_key <> <<index::32>>)
 
     data
     |> Map.merge(%{child_chain: child_chain, derived_key: derived_key})
