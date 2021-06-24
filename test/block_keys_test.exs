@@ -3,7 +3,7 @@ defmodule BlockKeysTest do
 
   describe "generate/0" do
     test "it generates the mnemonic and root private key" do
-      assert %{mnemonic: mnemonic, root_key: root_key} = BlockKeys.generate()
+      assert %{mnemonic: _mnemonic, root_key: _root_key} = BlockKeys.generate()
     end
 
     test "generates mnemonic and root private key for testnet" do
