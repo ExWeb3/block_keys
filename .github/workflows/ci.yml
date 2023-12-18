@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       MIX_ENV: test
-      RUSTLER_BUILD: "1"
+      RUSTLER_BUILD: "0"
 
     name: Elixir ${{ matrix.pair.elixir }} / OTP ${{ matrix.pair.otp }}
 
