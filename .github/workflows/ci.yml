@@ -22,6 +22,18 @@ jobs:
           - pair:
               elixir: 1.12.1
               otp: 24.0.2
+          - pair:
+              elixir: 1.11.4
+              otp: 23.3.1
+          - pair:
+              elixir: 1.11.4
+              otp: 24.0.2
+          - pair:
+              elixir: 1.10.4
+              otp: 23.3.1
+          - pair:
+              elixir: 1.10.4
+              otp: 22.2.8
           - pair: 
               elixir: 1.12.1
               otp: 23.3.1
