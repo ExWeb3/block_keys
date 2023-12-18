@@ -14,37 +14,10 @@ Add the dependency to your `mix.exs`:
 ```
 def deps do
   [
-    {:block_keys, "~> 0.1.10"}
+    {:block_keys, "~> 1.0.0"}
   ]
 end
 ```
-
-### Using a different libsecp256k1 library
-
-By default, this package depends on the [ExThereum's fork of libsecp256k1 C Nif](https://github.com/exthereum/libsecp256k1).
-
-If you prefer, you can either roll your own Crypto module or use another experimental and probably incomplete Rust based Nif
-based on [Parity's pure Rust implementation](https://crates.io/crates/libsecp256k1).
-
-Add this additional dependency to your `mix.exs`:
-
-```
-def deps do
-  [
-    ...
-    {:rusty_secp256k1, "~> 0.1.6"}
-    ...
-  ]
-end
-```
-
-And configure the package to use it in your `config.exs` or the appropriate env configuration:
-
-```
-config :block_keys, :ec_module, RustySecp256k1
-```
-
-Note that you will need to have Rust installed and configured in order to build the `rusty_secp256k1` dependency.
 
 ## What is this good for ?
 

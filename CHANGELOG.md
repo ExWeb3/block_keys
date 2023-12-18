@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.0
+
+  * **Breaking** Removes support for libsecp256k1 Nif library in favour of the 
+  better maitained ex_secp256k1. The Rust based ex_secp256k1 also comes with
+  precompiled binaries, making compilation much faster.
+
 ## v0.1.10
 
   * Adds support for OTP 24
