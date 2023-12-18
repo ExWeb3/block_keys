@@ -1,5 +1,5 @@
 defmodule BlockKeys.Base58.Encoder do
-  @btc_alphabet '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+  @btc_alphabet ~c"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
   def alphabet, do: @btc_alphabet
 
