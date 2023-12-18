@@ -26,28 +26,16 @@ jobs:
               elixir: 1.12.1
               otp: 23.3.1
           - pair:
-              elixir: 1.11.4
-              otp: 23.3.1
-          - pair:
-              elixir: 1.11.4
-              otp: 24.0.2
-          - pair:
-              elixir: 1.10.4
-              otp: 23.3.1
-          - pair:
-              elixir: 1.10.4
-              otp: 22.2.8
-          - pair:
               elixir: 1.14.3
               otp: 25.2.1
           - pair:
-              elixir: 1.15.7
-              otp: 26.1.2
+              elixir: 1.15
+              otp: 26.0
             lint: lint
     steps:
       - uses: actions/checkout@v3
 
-      - uses: erlef/setup-beam@v1.16
+      - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.pair.otp }}
           elixir-version: ${{ matrix.pair.elixir }}
