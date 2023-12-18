@@ -35,5 +35,5 @@ defmodule BlockKeys.Ethereum.Address do
     |> Kernel.<>(address |> Base.encode16(case: :lower))
   end
 
-  defp keccak256(data), do: :keccakf1600.hash(:sha3_256, data)
+  defp keccak256(data), do: ExKeccak.hash_256(data)
 end
