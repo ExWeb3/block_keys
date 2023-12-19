@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.1
+
+  * Brings in Ethereum EIP-55 checksum addresses, credit goes to @wchenNL
+
 ## v1.0.0
 
   **Breaking Changes** 
