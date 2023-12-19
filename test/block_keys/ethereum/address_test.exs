@@ -15,6 +15,6 @@ defmodule EthereumAddressTest do
 
     assert CKD.derive(root_key, "M/44'/60'/0'/0/0")
            |> Address.from_xpub() ==
-             "0x73bb50c828fd325c011d740fde78d02528826156"
+             "0x73Bb50c828fD325c011d740fDe78d02528826156"
   end
 end
