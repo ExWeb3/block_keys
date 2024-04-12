@@ -43,7 +43,9 @@ defmodule BlockKeys.MixProject do
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:ex_keccak, "~> 0.7.3"},
       {:ex_secp256k1, "~> 0.7.2"},
-      {:excoveralls, "~> 0.10", only: :test}
+      {:excoveralls, "~> 0.10", only: :test},
+      # Solana keys algorithm
+      {:ed25519, "~> 1.3"}
     ]
   end
 end

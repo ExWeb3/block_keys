@@ -16,27 +16,29 @@ defmodule BlockKeys.CKD do
         iex> BlockKeys.derive("xprv9s21ZrQH143K3BwM39ubv3fkaHxCN6M4roETEg68Jviq9AnbRjmqVAF4qJHkoLqgSv2bNqYTnRNY9yBQhjNYceZ1NxiDe8WcNJAeWetCvfR", "m/44'/0'/0'")
         "xprv9yAYtNSBnu2ojv5BR1b8T39t8oPnbzG8H8CbEHnhBhoXWf441nRA3zDW7PFBL4wkz7CNqtbhr4YVnLuSquiR1QPJgk72jVN8uZ4S2UkuLVk"
   """
-  def derive(<<"xpub", _rest::binary>>, <<"m/", _path::binary>>),
+  def derive(key, path, opts \\ [])
+
+  def derive(<<"xpub", _rest::binary>>, <<"m/", _path::binary>>, _opts),
     do: {:error, "Cannot derive private key from public key"}
 
-  def derive(<<"tpub", _rest::binary>>, <<"m/", _path::binary>>),
+  def derive(<<"tpub", _rest::binary>>, <<"m/", _path::binary>>, _opts),
     do: {:error, "Cannot derive private key from public key"}
 
-  def derive(<<"xprv", _rest::binary>> = extended_key, <<"M/", path::binary>>) do
+  def derive(<<"xprv", _rest::binary>> = extended_key, <<"M/", path::binary>>, opts) do
     path
     |> String.split("/")
     |> _derive(extended_key)
-    |> master_public_key()
+    |> master_public_key(opts)
   end
 
-  def derive(<<"tprv", _rest::binary>> = extended_key, <<"M/", path::binary>>) do
+  def derive(<<"tprv", _rest::binary>> = extended_key, <<"M/", path::binary>>, opts) do
     path
     |> String.split("/")
     |> _derive(extended_key)
-    |> master_public_key()
+    |> master_public_key(opts)
   end
 
-  def derive(extended_key, path) do
+  def derive(extended_key, path, _opts) do
     path
     |> String.replace(~r/m\/|M\//, "")
     |> String.split("/")
@@ -116,35 +118,42 @@ defmodule BlockKeys.CKD do
     )
   end
 
-  def master_public_key(<<"xpub", _rest::binary>>),
+  def master_public_key(key, opts \\ [])
+
+  def master_public_key(<<"xpub", _rest::binary>>, _opts),
     do: {:error, "Cannot derive master public key from another extended public key"}
 
-  def master_public_key(<<"tpub", _rest::binary>>),
+  def master_public_key(<<"tpub", _rest::binary>>, _opts),
     do: {:error, "Cannot derive master public key from another extended public key"}
 
-  def master_public_key(key) do
+  def master_public_key(key, opts) do
     decoded_key = Encoding.decode_extended_key(key)
 
     data =
       decoded_key
       |> slice_prefix()
-      |> put_uncompressed_parent_pub(%{index: decoded_key.index})
-      |> put_compressed_parent_pub()
+      |> put_parent_pub(%{index: decoded_key.index}, opts)
 
-    network =
+    {network, prefix} =
       case key do
-        "xprv" <> _ -> :mainnet
-        "tprv" <> _ -> :testnet
+        "xprv" <> _ -> {:mainnet, "xpub"}
+        "tprv" <> _ -> {:testnet, "tpub"}
       end
 
-    Encoding.encode_extended_key(
-      Encoding.public_version_number(network),
-      decoded_key.depth,
-      decoded_key.fingerprint,
-      decoded_key.index,
-      decoded_key.chain_code,
-      data.parent_pub_key
-    )
+    encoded_public_key =
+      Encoding.encode_extended_key(
+        Encoding.public_version_number(network),
+        decoded_key.depth,
+        decoded_key.fingerprint,
+        decoded_key.index,
+        decoded_key.chain_code,
+        data.parent_pub_key
+      )
+
+    case opts[:network] do
+      :solana -> prefix <> encoded_public_key
+      _ -> encoded_public_key
+    end
   end
 
   defp parse_index(index) do
@@ -195,6 +204,20 @@ defmodule BlockKeys.CKD do
        ) do
     %{parent_priv_key: parent_priv_key}
     |> Map.merge(%{decoded_key: decoded_key, version_number: version_number})
+  end
+
+  defp put_parent_pub(%{parent_priv_key: parent_priv_key} = data, index, opts) do
+    case opts[:network] do
+      :solana ->
+        data
+        |> Map.merge(%{parent_pub_key: Ed25519.derive_public_key(parent_priv_key)})
+        |> Map.merge(index)
+
+      _ ->
+        data
+        |> put_uncompressed_parent_pub(index)
+        |> put_compressed_parent_pub()
+    end
   end
 
   defp put_uncompressed_parent_pub(%{parent_priv_key: parent_priv_key} = data, index) do
