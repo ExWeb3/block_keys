@@ -11,6 +11,7 @@ defmodule BlockKeys.Solana.Address do
     |> Base58.encode()
   end
 
+  # https://solanacookbook.com/references/keypairs-and-wallets.html#how-to-check-if-a-public-key-has-an-associated-private-key
   def valid_address?(address) when byte_size(address) in 32..44 do
     public_key = address |> BlockKeys.Base58.decode() |> :binary.encode_unsigned()
     Ed25519.on_curve?(public_key)
