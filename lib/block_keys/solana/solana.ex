@@ -7,7 +7,7 @@ defmodule BlockKeys.Solana do
   alias BlockKeys.CKD
 
   def address(key, path) do
-    CKD.derive(key, path, network: :solana)
+    CKD.derive(key, path, curve: :ed25519)
     |> Address.from_xpub()
   end
 end

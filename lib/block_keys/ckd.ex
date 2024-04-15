@@ -150,8 +150,8 @@ defmodule BlockKeys.CKD do
         data.parent_pub_key
       )
 
-    case opts[:network] do
-      :solana -> prefix <> encoded_public_key
+    case opts[:curve] do
+      :ed25519 -> prefix <> encoded_public_key
       _ -> encoded_public_key
     end
   end
@@ -207,8 +207,8 @@ defmodule BlockKeys.CKD do
   end
 
   defp put_parent_pub(%{parent_priv_key: parent_priv_key} = data, index, opts) do
-    case opts[:network] do
-      :solana ->
+    case opts[:curve] do
+      :ed25519 ->
         data
         |> Map.merge(%{parent_pub_key: Ed25519.derive_public_key(parent_priv_key)})
         |> Map.merge(index)

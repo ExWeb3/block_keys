@@ -13,7 +13,7 @@ defmodule SolanaAddressTest do
     assert root_key ==
              "xprv9s21ZrQH143K35qGjQ6GG1wGHFZP7uCZA1WBdUJA8vBZqESQXQGA4A9d4eve5JqWB5m8YTMcNe8cc7c3FVzDGNcmiabi9WQycbFeEvvJF2D"
 
-    assert CKD.derive(root_key, "M/44'/501'/0'/0/0", network: :solana)
+    assert CKD.derive(root_key, "M/44'/501'/0'/0/0", curve: :ed25519)
            |> Address.from_xpub() ==
              "4U76rEGDx595M46rWgoA7LwtA821BWCU9CkwG8zbJ6xa"
   end

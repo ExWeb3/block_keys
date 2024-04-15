@@ -104,7 +104,7 @@ xpub = BlockKeys.CKD.derive(root_key, path)
 
 ```
 path = "M/501'/0'/0'"
-xpub = BlockKeys.CKD.derive(root_key, path, network: :solana)
+xpub = BlockKeys.CKD.derive(root_key, path, curve: :ed25519)
 ```
 
 ## Generating addresses from Master Public Key
