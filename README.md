@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/AgileAlpha/block_keys.svg?branch=master)](https://travis-ci.com/AgileAlpha/block_keys)
 
 BlockKeys is an Elixir implementation of BIP44 Multi-Account Hierarchy for Deterministic Wallets.
-Currently it supports Bitcoin and Ethereum but will be extended to support a [large number of coin types](https://github.com/satoshilabs/slips/blob/master/slip-0044.md) of coins in the future.
+Currently it supports Bitcoin, Ethereum and Solana, but will be extended to support a [large number of coin types](https://github.com/satoshilabs/slips/blob/master/slip-0044.md) of coins in the future.
 
 For low level details check the [Wiki](https://github.com/AgileAlpha/block_keys/wiki).
 
@@ -14,7 +14,7 @@ Add the dependency to your `mix.exs`:
 ```
 def deps do
   [
-    {:block_keys, "~> 1.0.1"}
+    {:block_keys, "~> 1.0.2"}
   ]
 end
 ```
@@ -100,6 +100,13 @@ path = "M/60'/0'/0'"
 xpub = BlockKeys.CKD.derive(root_key, path)
 ```
 
+### Solana
+
+```
+path = "M/501'/0'/0'"
+xpub = BlockKeys.CKD.derive(root_key, path, curve: :ed25519)
+```
+
 ## Generating addresses from Master Public Key
 
 Generally you would export the master public key and keep it on your live server so that you can generate addresses for payments or deposits.
@@ -118,6 +125,13 @@ address = BlockKeys.Bitcoin.address(xpub, path)
 ```
 path = "M/0/0"
 address = BlockKeys.Ethereum.address(xpub, path)
+```
+
+### Solana
+
+```
+path = "M/0/0"
+address = BlockKeys.Solana.address(xpub, path)
 ```
 
 ## Path and derivations

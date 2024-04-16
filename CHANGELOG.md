@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.2
+
+  * Adds support for Solana addresses
+
 ## v1.0.1
 
   * Brings in Ethereum EIP-55 checksum addresses, credit goes to @wchenNL

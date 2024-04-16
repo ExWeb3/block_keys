@@ -79,6 +79,16 @@ defmodule CKDTest do
       assert CKD.derive(xpub, "M/0/0") == CKD.derive(xprv, "M/44'/0'/0'/0/0")
       assert CKD.derive(xpub, "M/0/1") == CKD.derive(xprv, "M/44'/0'/0'/0/1")
     end
+
+    test "derives xpub from master with network keyword" do
+      path = "M/44'/0'/0'"
+
+      xprv =
+        "xprv9s21ZrQH143K4RdNK1f51Rdeu4XRG8q2cgzeh7ejtzgYpdZcHpNb1MJ2DdBa4iX6NVoZZajsC4gr26mLFaHGBrrtvGkxwhGh6ng8HVZRSeV"
+
+      assert CKD.derive(xprv, path, curve: :ed25519) ==
+               "xpubDeb7pPtgAGEq2eo7ZHPNUvR7xsF4nhK5dBRqA1KD9jZSkSouoZQj6XJ2BVMAMkjHyPeUtUv46Ku4WCWns9uZnUc9BbV5WvFaWNeXbn15bKXNzr"
+    end
   end
 
   describe "master_keys/1" do
@@ -169,6 +179,24 @@ defmodule CKDTest do
 
       assert testnet_public_key ==
                "tpubD6NzVbkrYhZ4XEp55bZ1JFNwu7uUPpqcTaFJSb5nDa2yQq5NKwWNHnrrTrGkK1HxcfswjNaMY1fYx23rohEt6PwKqX8HAeFHTb8oYhXsaYi"
+    end
+
+    test "returns proper public key with network keyword" do
+      mainnet_private_key =
+        "xprv9tyUQV64JT5qs3RSTJkXCWKMyUgoQp7F3hA1xzG6ZGu6u6Q9VMNjGr67Lctvy5P8oyaYAL9CAWrUE9i6GoNMKUga5biW6Hx4tws2six3b9c"
+
+      mainnet_public_key = CKD.master_public_key(mainnet_private_key, curve: :ed25519)
+
+      assert mainnet_public_key ==
+               "xpubDeb7pNy9ZrJfKYBgSVfGXtVfeJWFPmkZoxhMFwAf1YC34mH74pyFja1T1pu1xHiWSBoCMyKa41TTvd821mnV5D1rom5JzN6KPPiqnaoK6L6Jwn"
+
+      testnet_private_key =
+        "tprv8ZgxMBicQKsPdmnHBwtQtqiqL6PYEVehtGeXA53UoJEaaLpbhYgn7JEzHhuXusKgYiNyZnC71oS5D7s1CDVmsMpoRxfM5e3TZfG9LAbmyuc"
+
+      testnet_public_key = CKD.master_public_key(testnet_private_key, curve: :ed25519)
+
+      assert testnet_public_key ==
+               "tpubCk2VbTbSG6A2iAeAru4sKG5Xt2u6eBdMhy9kNt2t5SPqJoTGxF4i5kANbAV4WoQ8Fi7m5oQVMd3TD3novoKLtquy8XKmbe45pMm8WbSRpKgddt"
     end
   end
 
