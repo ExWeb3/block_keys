@@ -93,6 +93,13 @@ path = "M/44'/0'/0'"
 xpub = BlockKeys.CKD.derive(root_key, path)
 ```
 
+### Litecoin
+
+```
+path = "M/44'/2'/0'"
+xpub = BlockKeys.CKD.derive(root_key, path)
+```
+
 ### Ethereum
 
 ```
@@ -118,6 +125,13 @@ This is just an example of how you would generate some sample addresses
 ```
 path = "M/0/0"
 address = BlockKeys.Bitcoin.address(xpub, path)
+```
+
+### Litecoin
+
+```
+path = "M/0/0"
+address = BlockKeys.Litecoin.address(xpub, path)
 ```
 
 ### Ethereum
